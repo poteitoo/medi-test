@@ -7,6 +7,6 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  index("../presentation/pages/home-page.tsx"),
+  index("../presentation/pages/dashboard-page.tsx"),
   route("login", "../presentation/pages/login-page.tsx"),
 ] satisfies RouteConfig;
