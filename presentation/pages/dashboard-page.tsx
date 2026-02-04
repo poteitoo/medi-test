@@ -12,6 +12,7 @@ import { EmptyDashboard } from "~/features/dashboard/components/empty-dashboard"
 import { useDashboardData } from "~/features/dashboard/hooks/use-dashboard-data";
 import { ScenarioCreationDialog } from "~/features/scenario-creation/scenario-creation-dialog";
 import { useKeyboardShortcut } from "~/features/scenario-creation/hooks/use-keyboard-shortcut";
+import { prisma } from "db";
 
 export const meta: MetaFunction = () => {
   return [
@@ -19,6 +20,11 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "テスト実行の概要とリアルタイム進捗を確認" },
   ];
 };
+
+export async function loader() {
+  const user = await prisma.user.count()
+  console.log('user', user)
+}
 
 export default function DashboardPage() {
   const { data, isLoading, error, refresh } = useDashboardData();

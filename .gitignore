@@ -8,3 +8,7 @@
 
 # turbo
 .turbo
+
+# prisma
+/generated/prisma
+dev.db
