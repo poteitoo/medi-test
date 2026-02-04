@@ -17,13 +17,16 @@ import { prisma } from "db";
 export const meta: MetaFunction = () => {
   return [
     { title: "ダッシュボード - medi-test" },
-    { name: "description", content: "テスト実行の概要とリアルタイム進捗を確認" },
+    {
+      name: "description",
+      content: "テスト実行の概要とリアルタイム進捗を確認",
+    },
   ];
 };
 
 export async function loader() {
-  const user = await prisma.user.count()
-  console.log('user', user)
+  const user = await prisma.user.count();
+  console.log("user", user);
 }
 
 export default function DashboardPage() {
@@ -70,7 +73,12 @@ export default function DashboardPage() {
                 C
               </kbd>
             </Button>
-            <Button onClick={refresh} variant="outline" size="sm" className="gap-2">
+            <Button
+              onClick={refresh}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
               <RefreshCw className="h-4 w-4" />
               更新
             </Button>
@@ -78,7 +86,10 @@ export default function DashboardPage() {
         </div>
 
         {/* サマリーカード */}
-        <TestSummaryCard summary={data.summary} executionTrends={data.executionTrends} />
+        <TestSummaryCard
+          summary={data.summary}
+          executionTrends={data.executionTrends}
+        />
 
         {/* メイングリッド */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -141,7 +152,13 @@ function DashboardSkeleton() {
 /**
  * エラー表示
  */
-function DashboardError({ error, onRetry }: { error: Error; onRetry: () => void }) {
+function DashboardError({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry: () => void;
+}) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto p-6">
@@ -150,7 +167,12 @@ function DashboardError({ error, onRetry }: { error: Error; onRetry: () => void 
           <AlertTitle>エラーが発生しました</AlertTitle>
           <AlertDescription className="mt-2 space-y-2">
             <p>{error.message}</p>
-            <Button onClick={onRetry} variant="outline" size="sm" className="mt-4">
+            <Button
+              onClick={onRetry}
+              variant="outline"
+              size="sm"
+              className="mt-4"
+            >
               <RefreshCw className="mr-2 h-4 w-4" />
               再試行
             </Button>

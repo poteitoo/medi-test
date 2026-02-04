@@ -42,7 +42,14 @@ export type TestRunStatus = "pending" | "in_progress" | "completed" | "blocked";
 ```typescript
 // domain/logic/scenario-validator.ts
 export const validateScenarioCategory = (category: string): boolean => {
-  const validCategories = ["authentication", "payment", "ui", "api", "integration", "performance"];
+  const validCategories = [
+    "authentication",
+    "payment",
+    "ui",
+    "api",
+    "integration",
+    "performance",
+  ];
   return validCategories.includes(category);
 };
 
@@ -62,11 +69,15 @@ import { GitError } from "~/domain/errors/git-errors";
 
 export interface GitRepository {
   getScenario: (scenarioId: string) => Effect.Effect<Scenario, GitError>;
-  commitFiles: (files: Array<{path: string; content: string}>) => Effect.Effect<void, GitError>;
+  commitFiles: (
+    files: Array<{ path: string; content: string }>,
+  ) => Effect.Effect<void, GitError>;
   getCurrentCommit: () => Effect.Effect<string, GitError>;
 }
 
-export const GitRepository = Context.GenericTag<GitRepository>("@services/GitRepository");
+export const GitRepository = Context.GenericTag<GitRepository>(
+  "@services/GitRepository",
+);
 ```
 
 ### ステップ4: ユースケースの実装
@@ -77,8 +88,14 @@ Effect を使ってユースケースを組み立てます。
 // application/usecases/scenario/create-scenario.ts
 import { Effect } from "effect";
 import { GitRepository } from "~/application/ports/git-repository";
-import { validateScenarioCategory, validateScenarioId } from "~/domain/logic/scenario-validator";
-import { InvalidScenarioCategoryError, InvalidScenarioIdError } from "~/domain/errors/scenario-errors";
+import {
+  validateScenarioCategory,
+  validateScenarioId,
+} from "~/domain/logic/scenario-validator";
+import {
+  InvalidScenarioCategoryError,
+  InvalidScenarioIdError,
+} from "~/domain/errors/scenario-errors";
 
 export const createScenario = (input: CreateScenarioInput) =>
   Effect.gen(function* () {
@@ -88,7 +105,9 @@ export const createScenario = (input: CreateScenarioInput) =>
     }
 
     if (!validateScenarioCategory(input.category)) {
-      return yield* Effect.fail(new InvalidScenarioCategoryError({ category: input.category }));
+      return yield* Effect.fail(
+        new InvalidScenarioCategoryError({ category: input.category }),
+      );
     }
 
     // Git リポジトリに保存
@@ -98,7 +117,7 @@ export const createScenario = (input: CreateScenarioInput) =>
 
     yield* gitRepo.commitFiles([
       { path: `scenarios/${input.id}.yml`, content: yamlContent },
-      { path: `scenarios/${input.id}.md`, content: markdownContent }
+      { path: `scenarios/${input.id}.md`, content: markdownContent },
     ]);
 
     const version = yield* gitRepo.getCurrentCommit();
@@ -127,11 +146,16 @@ export const GitRepositoryLive = Layer.effect(
       getScenario: (scenarioId) =>
         Effect.tryPromise({
           try: async () => {
-            const yamlContent = await git.show([`HEAD:scenarios/${scenarioId}.yml`]);
-            const markdownContent = await git.show([`HEAD:scenarios/${scenarioId}.md`]);
+            const yamlContent = await git.show([
+              `HEAD:scenarios/${scenarioId}.yml`,
+            ]);
+            const markdownContent = await git.show([
+              `HEAD:scenarios/${scenarioId}.md`,
+            ]);
             return { yaml: yamlContent, markdown: markdownContent };
           },
-          catch: (error) => new GitError({ message: "Failed to get scenario", cause: error })
+          catch: (error) =>
+            new GitError({ message: "Failed to get scenario", cause: error }),
         }),
 
       commitFiles: (files) =>
@@ -144,7 +168,8 @@ export const GitRepositoryLive = Layer.effect(
             await git.commit(`Add/update scenarios`);
             await git.push();
           },
-          catch: (error) => new GitError({ message: "Failed to commit files", cause: error })
+          catch: (error) =>
+            new GitError({ message: "Failed to commit files", cause: error }),
         }),
 
       getCurrentCommit: () =>
@@ -153,10 +178,14 @@ export const GitRepositoryLive = Layer.effect(
             const result = await git.revparse(["HEAD"]);
             return result.trim();
           },
-          catch: (error) => new GitError({ message: "Failed to get current commit", cause: error })
-        })
+          catch: (error) =>
+            new GitError({
+              message: "Failed to get current commit",
+              cause: error,
+            }),
+        }),
     });
-  })
+  }),
 );
 ```
 

@@ -9,7 +9,11 @@ interface TestRunStatusBadgeProps {
 
 const statusConfig: Record<
   TestRunStatus,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive"; className: string }
+  {
+    label: string;
+    variant: "default" | "secondary" | "outline" | "destructive";
+    className: string;
+  }
 > = {
   planned: {
     label: "計画中",
@@ -35,7 +39,10 @@ const statusConfig: Record<
   },
 };
 
-export function TestRunStatusBadge({ status, className }: TestRunStatusBadgeProps) {
+export function TestRunStatusBadge({
+  status,
+  className,
+}: TestRunStatusBadgeProps) {
   const config = statusConfig[status];
 
   return (

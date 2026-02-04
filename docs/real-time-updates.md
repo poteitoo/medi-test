@@ -8,17 +8,18 @@ medi-test は、**Server-Sent Events (SSE)** を使用して、複数ユーザ�
 
 ### SSE vs WebSocket
 
-| Feature | SSE | WebSocket |
-|---------|-----|-----------|
-| **通信方向** | Server → Client のみ | 双方向 |
-| **プロトコル** | HTTP/HTTPS | WebSocket protocol |
-| **再接続** | 自動（built-in） | 手動実装が必要 |
-| **ブラウザサポート** | すべてのモダンブラウザ | すべてのモダンブラウザ |
-| **実装の複雑さ** | シンプル | 複雑 |
-| **接続状態** | HTTP long-polling | 永続的な双方向接続 |
-| **ユースケース** | テスト進捗通知（読み取り専用） | チャット、ゲーム（読み書き） |
+| Feature              | SSE                            | WebSocket                    |
+| -------------------- | ------------------------------ | ---------------------------- |
+| **通信方向**         | Server → Client のみ           | 双方向                       |
+| **プロトコル**       | HTTP/HTTPS                     | WebSocket protocol           |
+| **再接続**           | 自動（built-in）               | 手動実装が必要               |
+| **ブラウザサポート** | すべてのモダンブラウザ         | すべてのモダンブラウザ       |
+| **実装の複雑さ**     | シンプル                       | 複雑                         |
+| **接続状態**         | HTTP long-polling              | 永続的な双方向接続           |
+| **ユースケース**     | テスト進捗通知（読み取り専用） | チャット、ゲーム（読み書き） |
 
 **medi-test の選択理由**:
+
 - テスト進捗は**サーバーからクライアントへの一方向通信**
 - クライアントはテスト結果を REST API で更新（SSE は不要）
 - 自動再接続機能により、ネットワーク障害から自動復旧
@@ -45,6 +46,7 @@ graph TD
 ```
 
 **フロー**:
+
 1. Executor が REST API でテスト結果を更新
 2. Backend が PostgreSQL にデータを保存
 3. Backend が Effect Hub にイベントを publish
@@ -85,14 +87,14 @@ export class SSEBroadcaster extends Context.Tag("@services/SSEBroadcaster")<
      */
     sendUpdate: (
       testRunId: string,
-      update: TestRunUpdate
+      update: TestRunUpdate,
     ) => Effect.Effect<void, BroadcastError>;
 
     /**
      * 特定のテストランの更新を購読
      */
     subscribeToTestRun: (
-      testRunId: string
+      testRunId: string,
     ) => Stream.Stream<TestRunUpdate, SubscriptionError>;
   }
 >() {}
@@ -107,7 +109,10 @@ export class SSEBroadcaster extends Context.Tag("@services/SSEBroadcaster")<
 ```typescript
 // infrastructure/adapters/sse-adapter.ts
 import { Effect, Layer, Hub, Stream } from "effect";
-import { SSEBroadcaster, type TestRunUpdate } from "~/application/ports/sse-broadcaster";
+import {
+  SSEBroadcaster,
+  type TestRunUpdate,
+} from "~/application/ports/sse-broadcaster";
 
 export const SSEBroadcasterLive = Layer.effect(
   SSEBroadcaster,
@@ -116,15 +121,14 @@ export const SSEBroadcasterLive = Layer.effect(
     const hub = yield* Hub.unbounded<TestRunUpdate>();
 
     return SSEBroadcaster.of({
-      sendUpdate: (testRunId, update) =>
-        Hub.publish(hub, update),
+      sendUpdate: (testRunId, update) => Hub.publish(hub, update),
 
       subscribeToTestRun: (testRunId) =>
         Stream.fromHub(hub).pipe(
-          Stream.filter((update) => update.testRunId === testRunId)
-        )
+          Stream.filter((update) => update.testRunId === testRunId),
+        ),
     });
-  })
+  }),
 );
 ```
 
@@ -143,7 +147,7 @@ import { SSEBroadcaster } from "~/application/ports/sse-broadcaster";
 export const updateTestItem = (
   testRunId: string,
   itemId: string,
-  input: UpdateTestItemInput
+  input: UpdateTestItemInput,
 ) =>
   Effect.gen(function* () {
     const repo = yield* TestRunRepository;
@@ -158,7 +162,7 @@ export const updateTestItem = (
       testRunId,
       itemId,
       data: updated,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     return updated;
@@ -169,10 +173,7 @@ export const updateTestItem = (
 
 ```typescript
 // application/usecases/test-run/update-test-run-status.ts
-export const updateTestRunStatus = (
-  testRunId: string,
-  status: TestRunStatus
-) =>
+export const updateTestRunStatus = (testRunId: string, status: TestRunStatus) =>
   Effect.gen(function* () {
     const repo = yield* TestRunRepository;
     const broadcaster = yield* SSEBroadcaster;
@@ -183,7 +184,7 @@ export const updateTestRunStatus = (
       type: "status_changed",
       testRunId,
       data: { status },
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   });
 ```
@@ -213,9 +214,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
             // SSE フォーマット: "data: <JSON>\n\n"
             const data = `data: ${JSON.stringify(update)}\n\n`;
             controller.enqueue(new TextEncoder().encode(data));
-          })
+          }),
         ),
-        Effect.provide(AppLayer)
+        Effect.provide(AppLayer),
       );
 
       // Stream を実行（エラー時にクローズ）
@@ -223,16 +224,16 @@ export async function loader({ params }: LoaderFunctionArgs) {
         console.error("SSE stream error:", error);
         controller.close();
       });
-    }
+    },
   });
 
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
-      "Connection": "keep-alive",
-      "X-Accel-Buffering": "no" // Nginx buffering を無効化
-    }
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no", // Nginx buffering を無効化
+    },
   });
 }
 ```
@@ -338,11 +339,13 @@ const formatUpdate = (update: TestRunUpdate): string => {
 ### 単一サーバーインスタンス
 
 **現在の実装（Effect Hub）**:
+
 - In-memory で動作
 - 同じサーバーインスタンスに接続しているクライアントのみ受信可能
 - シンプルで低レイテンシ
 
 **制限**:
+
 - 複数サーバーインスタンス（水平スケーリング）には対応していない
 
 ### 複数サーバーインスタンス対応
@@ -370,15 +373,12 @@ export const RedisSSEBroadcasterLive = Layer.effect(
       sendUpdate: (testRunId, update) =>
         Effect.tryPromise({
           try: () =>
-            publisher.publish(
-              `test-run:${testRunId}`,
-              JSON.stringify(update)
-            ),
+            publisher.publish(`test-run:${testRunId}`, JSON.stringify(update)),
           catch: (error) =>
             new BroadcastError({
               message: "Failed to publish to Redis",
-              cause: error
-            })
+              cause: error,
+            }),
         }).pipe(Effect.asVoid),
 
       subscribeToTestRun: (testRunId) => {
@@ -394,13 +394,14 @@ export const RedisSSEBroadcasterLive = Layer.effect(
             subscriber.unsubscribe(channel);
           });
         });
-      }
+      },
     });
-  })
+  }),
 );
 ```
 
 **デプロイ構成**:
+
 ```
 ┌─────────────────────────────────────────────┐
 │  Load Balancer (Sticky Session 不要)       │
@@ -432,7 +433,7 @@ export const batchUpdates = (updates: TestRunUpdate[]): TestRunUpdate => ({
   type: "batch",
   testRunId: updates[0].testRunId,
   data: updates,
-  timestamp: new Date()
+  timestamp: new Date(),
 });
 ```
 
@@ -456,6 +457,7 @@ eventSource.onmessage = (event) => {
 ### 3. 接続数の制限
 
 ブラウザの SSE 接続数制限（通常 6 接続/ドメイン）を考慮:
+
 - 1 ページで1つの SSE 接続のみ開く
 - 複数のテストランを同時に表示する場合、単一の SSE で複数のテストランを購読
 
@@ -484,10 +486,13 @@ const heartbeat = setInterval(() => {
 
 ```typescript
 useEffect(() => {
-  const reconnectInterval = setInterval(() => {
-    eventSource.close();
-    // 再接続は自動的に行われる
-  }, 5 * 60 * 1000); // 5分ごと
+  const reconnectInterval = setInterval(
+    () => {
+      eventSource.close();
+      // 再接続は自動的に行われる
+    },
+    5 * 60 * 1000,
+  ); // 5分ごと
 
   return () => clearInterval(reconnectInterval);
 }, []);

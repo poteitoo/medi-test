@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 medi-test is a test management system for the medimo application, built with **React Router v7**, **Effect TS**, and **Domain-Driven Design (DDD)** principles. It combines functional programming patterns with modern React development to manage test scenarios and track execution results.
 
 **Service Purpose:**
+
 - Store test scenarios in Git (YAML/Markdown files) for version control
 - Track test execution results in PostgreSQL for real-time updates
 - Integrate with GitHub PR and Linear for test scope suggestions
@@ -17,6 +18,7 @@ medi-test is a test management system for the medimo application, built with **R
 - Implement OAuth 2.0 / OIDC authentication with role-based access control
 
 **Tech Stack:**
+
 - React Router v7 (SSR enabled, file-based routing)
 - Effect TS v3 (dependency injection, error handling)
 - TypeScript (strict mode)
@@ -77,11 +79,13 @@ medi-test implements **Hexagonal Architecture (Ports & Adapters)** with strict l
 ### Layer Rules
 
 **✅ Allowed Dependencies:**
+
 - Presentation → Application
 - Application → Domain
 - Infrastructure → Application (implements ports)
 
 **❌ Prohibited Dependencies:**
+
 - Domain → Application (Domain is pure)
 - Domain → Infrastructure
 - Application → Infrastructure (uses Tag abstraction)
@@ -104,6 +108,7 @@ The project has **two architecture patterns**:
 **Note:** Root-level `domain/`, `application/`, `infrastructure/` directories are defined in tsconfig path aliases but not yet created. Complex features implement DDD internally for now.
 
 **Planned Features:**
+
 - Git-based scenario management (YAML/Markdown files)
 - PostgreSQL test run execution tracking
 - SSE real-time updates for test progress
@@ -204,7 +209,9 @@ import { Button } from "../../components/ui/button";
 
 ```typescript
 // application/ports/speech-recognition.ts
-export class SpeechRecognitionService extends Context.Tag("SpeechRecognitionService")<
+export class SpeechRecognitionService extends Context.Tag(
+  "SpeechRecognitionService",
+)<
   SpeechRecognitionService,
   {
     start: () => Effect.Effect<void, SpeechRecognitionError>;
@@ -220,11 +227,12 @@ export class SpeechRecognitionService extends Context.Tag("SpeechRecognitionServ
 export const WebSpeechRecognitionLive = Layer.succeed(
   SpeechRecognitionService,
   {
-    start: () => Effect.gen(function* () {
-      // Browser API implementation
-    }),
+    start: () =>
+      Effect.gen(function* () {
+        // Browser API implementation
+      }),
     stop: () => Effect.succeed(undefined),
-  }
+  },
 );
 ```
 
@@ -245,7 +253,7 @@ export const startVoiceInput = Effect.gen(function* () {
 export const useVoiceInputAdapter = () => {
   const handleStart = async () => {
     const program = startVoiceInput.pipe(
-      Effect.provide(BrowserLayer) // Inject dependencies
+      Effect.provide(BrowserLayer), // Inject dependencies
     );
     await Effect.runPromise(program);
   };
@@ -279,7 +287,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!validation.success) {
     return data(
       { errors: validation.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -305,7 +313,9 @@ export function MyForm() {
 
   return (
     <FormProvider {...form}>
-      <Form method="post"> {/* Server submission */}
+      <Form method="post">
+        {" "}
+        {/* Server submission */}
         {/* Form fields */}
       </Form>
     </FormProvider>
@@ -316,6 +326,7 @@ export function MyForm() {
 ## TypeScript Strictness Rules
 
 **NEVER:**
+
 - ❌ Use `any` type
 - ❌ Use `let` keyword (use `const` or `useState`)
 - ❌ Use type assertions (`as`) without type guards
@@ -323,6 +334,7 @@ export function MyForm() {
 - ❌ Place features under `components/` (sibling directories only)
 
 **ALWAYS:**
+
 - ✅ Use `type` modifier for type-only imports
 - ✅ Run `npx tsc --noEmit` before committing
 - ✅ Use path aliases (`~/`, `@app/*`)
@@ -333,12 +345,12 @@ export function MyForm() {
 // ✅ Good
 import type { ActionFunctionArgs } from "react-router";
 const [value, setValue] = useState<string>("");
-<Button className={cn("base", condition && "extra")}>ログイン</Button>
+<Button className={cn("base", condition && "extra")}>ログイン</Button>;
 
 // ❌ Bad
 import { ActionFunctionArgs } from "react-router";
 let value: any = getData();
-<Button className={`base ${condition ? "extra" : ""}`}>Login</Button>
+<Button className={`base ${condition ? "extra" : ""}`}>Login</Button>;
 ```
 
 ## Styling with Tailwind CSS v4
@@ -358,11 +370,13 @@ let value: any = getData();
 ```tsx
 import { cn } from "~/lib/utils";
 
-<div className={cn(
-  "base-class",
-  conditional && "conditional-class",
-  props.className
-)} />
+<div
+  className={cn(
+    "base-class",
+    conditional && "conditional-class",
+    props.className,
+  )}
+/>;
 ```
 
 ## Feature Implementation Guide
@@ -415,7 +429,9 @@ export class VoiceInputState extends Data.Class<{
 ### Domain Error
 
 ```typescript
-export class SpeechRecognitionError extends Data.TaggedError("SpeechRecognitionError")<{
+export class SpeechRecognitionError extends Data.TaggedError(
+  "SpeechRecognitionError",
+)<{
   message: string;
 }> {}
 ```

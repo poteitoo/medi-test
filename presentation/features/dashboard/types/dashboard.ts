@@ -77,7 +77,12 @@ const MOCK_ENVIRONMENTS: Environment[] = [
 /**
  * モックプロジェクト名
  */
-const MOCK_PROJECTS = ["medimo-web", "medimo-api", "medimo-admin", "medimo-mobile"];
+const MOCK_PROJECTS = [
+  "medimo-web",
+  "medimo-api",
+  "medimo-admin",
+  "medimo-mobile",
+];
 
 /**
  * ランダムな日付を生成（過去N日以内）
@@ -111,7 +116,8 @@ function generateMockTestRun(index: number): TestRun {
   const completedItems = Math.floor(Math.random() * totalItems);
   const passedItems = Math.floor(completedItems * (0.7 + Math.random() * 0.3));
   const failedItems = completedItems - passedItems;
-  const successRate = completedItems > 0 ? Math.round((passedItems / completedItems) * 100) : 0;
+  const successRate =
+    completedItems > 0 ? Math.round((passedItems / completedItems) * 100) : 0;
 
   const statuses: Array<"planned" | "in_progress" | "completed" | "failed"> = [
     "in_progress",
@@ -124,7 +130,10 @@ function generateMockTestRun(index: number): TestRun {
 
   const status = index < 3 ? "in_progress" : getRandomItem(statuses);
   const startedAt = getRandomDateInPast(30);
-  const completedAt = status === "completed" || status === "failed" ? getRandomDateInPast(28) : undefined;
+  const completedAt =
+    status === "completed" || status === "failed"
+      ? getRandomDateInPast(28)
+      : undefined;
 
   return {
     id: `run-${index + 1}`,
@@ -137,7 +146,10 @@ function generateMockTestRun(index: number): TestRun {
     completedItems,
     passedItems,
     failedItems,
-    assignees: getRandomItems(MOCK_ASSIGNEES, 1 + Math.floor(Math.random() * 3)),
+    assignees: getRandomItems(
+      MOCK_ASSIGNEES,
+      1 + Math.floor(Math.random() * 3),
+    ),
     startedAt,
     completedAt,
   };
@@ -180,8 +192,12 @@ export function getMockDashboardData(): DashboardData {
   }
 
   // サマリー統計を計算
-  const inProgressRuns = testRuns.filter((run) => run.status === "in_progress").length;
-  const completedRuns = testRuns.filter((run) => run.status === "completed").length;
+  const inProgressRuns = testRuns.filter(
+    (run) => run.status === "in_progress",
+  ).length;
+  const completedRuns = testRuns.filter(
+    (run) => run.status === "completed",
+  ).length;
   const failedRuns = testRuns.filter((run) => run.status === "failed").length;
   const totalSuccessRate =
     testRuns.reduce((sum, run) => sum + run.successRate, 0) / testRuns.length;
@@ -218,7 +234,10 @@ export function getMockDashboardData(): DashboardData {
 
   // 最近のテスト実行（最新10件）
   const recentRuns = [...testRuns]
-    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+    )
     .slice(0, 10);
 
   // 実行トレンド

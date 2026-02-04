@@ -23,6 +23,7 @@
 ### Effect.gen を使う
 
 Good
+
 ```typescript
 import { Effect } from "effect";
 
@@ -34,18 +35,18 @@ export const createScenario = (input: CreateScenarioInput) =>
 ```
 
 Bad
+
 ```typescript
 import { Effect } from "effect";
 
 export const createScenario = (input: CreateScenarioInput) =>
-  ScenarioRepository.pipe(
-    Effect.flatMap((repo) => repo.create(input)),
-  );
+  ScenarioRepository.pipe(Effect.flatMap((repo) => repo.create(input)));
 ```
 
 ### Tag の命名規則
 
 Good
+
 ```typescript
 import { Context } from "effect";
 
@@ -55,17 +56,18 @@ export const ScenarioRepository = Context.GenericTag<ScenarioRepository>(
 ```
 
 Bad
+
 ```typescript
 import { Context } from "effect";
 
-export const ScenarioRepository = Context.GenericTag<ScenarioRepository>(
-  "ScenarioRepository",
-);
+export const ScenarioRepository =
+  Context.GenericTag<ScenarioRepository>("ScenarioRepository");
 ```
 
 ### Layer の命名規則
 
 Good
+
 ```typescript
 import { Layer } from "effect";
 
@@ -78,6 +80,7 @@ export const HttpScenarioRepository = Layer.succeed(
 ```
 
 Bad
+
 ```typescript
 import { Layer } from "effect";
 
@@ -92,6 +95,7 @@ export const scenarioRepository = Layer.succeed(
 ### エラーは Data.TaggedError を使う
 
 Good
+
 ```typescript
 import { Data } from "effect";
 
@@ -101,6 +105,7 @@ export class DuplicateScenarioError extends Data.TaggedError(
 ```
 
 Bad
+
 ```typescript
 export class DuplicateScenarioError extends Error {
   constructor(public title: string) {
@@ -108,6 +113,7 @@ export class DuplicateScenarioError extends Error {
   }
 }
 ```
+
 ## React の方針
 
 - UI と状態は分離する

@@ -114,7 +114,7 @@ import { Effect } from "effect";
 export async function loader({ params }: Route.LoaderArgs) {
   // Effect Program を実行
   const scenario = await Effect.runPromise(
-    getScenario(params.id).pipe(Effect.provide(AppLayer))
+    getScenario(params.id).pipe(Effect.provide(AppLayer)),
   );
 
   return { scenario };
@@ -142,7 +142,7 @@ import { Effect } from "effect";
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   // ブラウザ専用の Effect Layer を使用
   const data = await Effect.runPromise(
-    getDashboardData().pipe(Effect.provide(BrowserLayer))
+    getDashboardData().pipe(Effect.provide(BrowserLayer)),
   );
 
   return { data };
@@ -257,8 +257,8 @@ export async function action({ request }: Route.ActionArgs) {
             errors: { category: [`カテゴリ "${error.category}" は無効です`] },
           }),
       }),
-      Effect.provide(AppLayer)
-    )
+      Effect.provide(AppLayer),
+    ),
   );
 
   if (!result.success) {
@@ -427,7 +427,12 @@ import type { Route } from "./+types/rich-editor-page";
 export function links(): Route.LinkDescriptors {
   return [
     { rel: "stylesheet", href: "/styles/tiptap-editor.css" },
-    { rel: "preload", href: "/fonts/editor-font.woff2", as: "font", type: "font/woff2" },
+    {
+      rel: "preload",
+      href: "/fonts/editor-font.woff2",
+      as: "font",
+      type: "font/woff2",
+    },
   ];
 }
 ```

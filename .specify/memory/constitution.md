@@ -21,11 +21,13 @@ Follow-up TODOs: None
 **Declaration**: Every feature MUST implement strict layer separation with one-way dependencies. Application layer MUST define Ports via Effect TS Tags. Infrastructure layer MUST provide Adapters via Effect TS Layers. Presentation layer MUST NOT directly depend on Infrastructure.
 
 **Allowed Dependencies**:
+
 - Presentation → Application
 - Application → Domain
 - Infrastructure → Application (implements ports)
 
 **Prohibited Dependencies**:
+
 - Domain → Application (Domain is pure)
 - Domain → Infrastructure
 - Application → Infrastructure (uses Tag abstraction)
@@ -38,6 +40,7 @@ Follow-up TODOs: None
 **Declaration**: All external dependencies (APIs, databases, browser APIs) MUST be abstracted as Effect TS Tags in the Application layer. Implementations MUST be provided as Layers in the Infrastructure layer. Effect programs MUST use `Effect.gen()` with `yield*` syntax for composability.
 
 **Requirements**:
+
 - Tag naming: `@services/ServiceName` or `@repositories/RepositoryName`
 - Layer naming: `PascalCase` with implementation prefix (e.g., `HttpScenarioRepository`, `WebSpeechRecognitionLive`)
 - Error types MUST extend `Data.TaggedError`
@@ -48,6 +51,7 @@ Follow-up TODOs: None
 ### III. Type Safety & Immutability (NON-NEGOTIABLE)
 
 **Declaration**: TypeScript strict mode MUST be enabled. The following constructs are PROHIBITED:
+
 - `any` type (use `unknown` with type guards)
 - `let` keyword (use `const` or React `useState`)
 - Type assertions (`as`) without runtime type guards
@@ -55,6 +59,7 @@ Follow-up TODOs: None
 - Relative imports (MUST use path aliases: `~/`, `@app/*`, etc.)
 
 **Requirements**:
+
 - `npx tsc --noEmit` MUST pass before every commit
 - All data models MUST use `Data.Class` for structural equality
 - All mutations MUST go through React state hooks or Effect state management
@@ -66,6 +71,7 @@ Follow-up TODOs: None
 **Declaration**: All user-facing text (UI labels, error messages, validation messages, button text, form placeholders) MUST be written in Japanese.
 
 **Examples**:
+
 - ✅ `<Button>ログイン</Button>`
 - ❌ `<Button>Login</Button>`
 - ✅ `z.string().min(1, "ユーザー名を入力してください")`
@@ -78,6 +84,7 @@ Follow-up TODOs: None
 **Declaration**: React Router v7 SSR MUST be enabled. Page components MAY export `loader` and `action` functions for server-side data fetching and mutations. Forms MUST support server-side submission with JavaScript disabled (progressive enhancement).
 
 **Requirements**:
+
 - Use React Router `<Form>` component for server submission
 - Validate with Zod schemas on both client (React Hook Form) and server (action)
 - Loader functions MUST return serializable data (no functions, no circular refs)
@@ -90,6 +97,7 @@ Follow-up TODOs: None
 **Declaration**: Test scenarios MUST be stored as YAML/Markdown files in Git for version control. Test execution results MUST be stored in PostgreSQL for real-time updates and complex queries.
 
 **Storage Strategy**:
+
 - **Git**: Scenarios (immutable, version-controlled, code-reviewable)
 - **PostgreSQL**: Test runs, results, progress (mutable, transactional, query-optimized)
 - **Versioning**: Store Git commit SHA in test run records to freeze scenario version
@@ -101,6 +109,7 @@ Follow-up TODOs: None
 ### Development Workflow
 
 **Pre-Commit Checklist** (MUST PASS):
+
 1. `npx tsc --noEmit` - Zero type errors
 2. `pnpm typecheck` - Generate React Router types
 3. `pnpm fmt` - Format with oxfmt
@@ -110,10 +119,12 @@ Follow-up TODOs: None
 7. Verify layer dependencies correct
 
 **Architecture Patterns**:
+
 - **Simple features** (e.g., login form): Place directly in `presentation/features/[feature-name]/`
 - **Complex features** (e.g., voice input): Implement full DDD structure within feature directory with `ui/`, `application/`, `domain/`, `infrastructure/` subdirectories
 
 **File Naming Conventions**:
+
 - Files: `kebab-case` (e.g., `voice-input-control.tsx`)
 - Components: `PascalCase` (e.g., `VoiceInputControl`)
 - Functions/variables: `camelCase` (e.g., `startVoiceInput`)
@@ -125,6 +136,7 @@ Follow-up TODOs: None
 **Tailwind CSS v4**: Use `@theme` directive in `app/app.css` for design tokens. ALWAYS use `cn()` utility from `~/lib/utils` for className composition (NEVER template literals).
 
 **Example**:
+
 ```tsx
 // ✅ Good
 <div className={cn("base-class", conditional && "conditional-class", props.className)} />
@@ -136,19 +148,19 @@ Follow-up TODOs: None
 ### React Integration with Effect
 
 **Adapter Pattern**: Create adapters in `ui/adapters/` to bridge Effect programs to React hooks. Adapters MUST:
+
 - Accept Layer dependencies as parameters
 - Use `Effect.runPromise()` for async execution
 - Handle errors with try/catch or Effect error handling
 - Update React state via hooks
 
 **Example**:
+
 ```typescript
 // ui/adapters/voice-input-adapter.ts
 export const useVoiceInputAdapter = () => {
   const handleStart = async () => {
-    const program = startVoiceInput.pipe(
-      Effect.provide(BrowserLayer)
-    );
+    const program = startVoiceInput.pipe(Effect.provide(BrowserLayer));
     await Effect.runPromise(program);
   };
 };

@@ -1,5 +1,4 @@
 ---
-
 description: "機能実装のためのタスクリストテンプレート"
 ---
 
@@ -83,8 +82,8 @@ description: "機能実装のためのタスクリストテンプレート"
 
 > **注意: これらのテストを最初に書き、実装前に失敗することを確認してください**
 
-- [ ] T010 [P] [US1] tests/contract/test_[name].pyの[エンドポイント]のコントラクトテスト
-- [ ] T011 [P] [US1] tests/integration/test_[name].pyの[ユーザージャーニー]の統合テスト
+- [ ] T010 [P] [US1] tests/contract/test\_[name].pyの[エンドポイント]のコントラクトテスト
+- [ ] T011 [P] [US1] tests/integration/test\_[name].pyの[ユーザージャーニー]の統合テスト
 
 ### ユーザーストーリー1の実装
 
@@ -107,8 +106,8 @@ description: "機能実装のためのタスクリストテンプレート"
 
 ### ユーザーストーリー2のテスト（オプション - テストが要求された場合のみ）⚠️
 
-- [ ] T018 [P] [US2] tests/contract/test_[name].pyの[エンドポイント]のコントラクトテスト
-- [ ] T019 [P] [US2] tests/integration/test_[name].pyの[ユーザージャーニー]の統合テスト
+- [ ] T018 [P] [US2] tests/contract/test\_[name].pyの[エンドポイント]のコントラクトテスト
+- [ ] T019 [P] [US2] tests/integration/test\_[name].pyの[ユーザージャーニー]の統合テスト
 
 ### ユーザーストーリー2の実装
 
@@ -129,8 +128,8 @@ description: "機能実装のためのタスクリストテンプレート"
 
 ### ユーザーストーリー3のテスト（オプション - テストが要求された場合のみ）⚠️
 
-- [ ] T024 [P] [US3] tests/contract/test_[name].pyの[エンドポイント]のコントラクトテスト
-- [ ] T025 [P] [US3] tests/integration/test_[name].pyの[ユーザージャーニー]の統合テスト
+- [ ] T024 [P] [US3] tests/contract/test\_[name].pyの[エンドポイント]のコントラクトテスト
+- [ ] T025 [P] [US3] tests/integration/test\_[name].pyの[ユーザージャーニー]の統合テスト
 
 ### ユーザーストーリー3の実装
 

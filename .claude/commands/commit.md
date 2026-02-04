@@ -14,6 +14,7 @@ description: ステージングされたファイルから日本語のConvention
 
 3. **コミットメッセージを作成**
    - 下記のようなConventional Commits形式に従う。言語は日本語
+
 ```
 <type>(<scope>): <簡潔な説明>
 # type: 変更の種類を指定

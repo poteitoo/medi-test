@@ -31,14 +31,21 @@ export function StatCard({
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
         <div
           className={cn(
             "h-10 w-10 rounded-lg flex items-center justify-center",
             gradientClass || "bg-primary/10",
           )}
         >
-          <Icon className={cn("h-5 w-5", gradientClass ? "text-white" : "text-primary")} />
+          <Icon
+            className={cn(
+              "h-5 w-5",
+              gradientClass ? "text-white" : "text-primary",
+            )}
+          />
         </div>
       </CardHeader>
       <CardContent>

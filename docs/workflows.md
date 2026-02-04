@@ -84,6 +84,7 @@ sequenceDiagram
 ```
 
 **主なステップ**:
+
 1. ユーザーがフォームで入力（タイトル、カテゴリ、手順など）
 2. Backend が YAML と Markdown を生成
 3. YAML スキーマバリデーション
@@ -119,6 +120,7 @@ sequenceDiagram
 ```
 
 **楽観的ロック（Optimistic Locking）**:
+
 - 編集開始時に現在の commit SHA を取得（`base_version`）
 - 保存時に `base_version` と現在の HEAD を比較
 - 異なる場合は 409 Conflict を返し、ユーザーに再編集を促す
@@ -143,6 +145,7 @@ sequenceDiagram
 ```
 
 **アーカイブ戦略**:
+
 - ファイル削除ではなく、`archived/` ディレクトリに移動
 - Git 履歴により、過去のテストランからは参照可能
 - UI では active シナリオのみ表示（archived は非表示）
@@ -181,6 +184,7 @@ sequenceDiagram
 ```
 
 **SSE イベント例**:
+
 ```json
 {
   "type": "item_updated",

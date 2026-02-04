@@ -10,9 +10,7 @@ interface UseScenarioFormReturn {
   isSubmitting: boolean;
 }
 
-export function useScenarioForm(
-  onSuccess?: () => void,
-): UseScenarioFormReturn {
+export function useScenarioForm(onSuccess?: () => void): UseScenarioFormReturn {
   const form = useForm<ScenarioFormData>({
     resolver: zodResolver(scenarioSchema),
     defaultValues: {

@@ -34,6 +34,7 @@ sequenceDiagram
 ### Token Validation
 
 **JWT（JSON Web Token）の検証**:
+
 1. **署名検証**: Auth Server の公開鍵で署名を検証
 2. **有効期限チェック**: `exp` claim が現在時刻より後か
 3. **Issuer 検証**: `iss` claim が期待する Auth Server か
@@ -49,23 +50,25 @@ export const validateToken = (token: string, publicKey: jose.KeyLike) =>
     try: () =>
       jose.jwtVerify(token, publicKey, {
         issuer: "https://accounts.google.com",
-        audience: "your-client-id"
+        audience: "your-client-id",
       }),
     catch: (error) =>
       new TokenValidationError({
         message: "Token validation failed",
-        cause: error
-      })
+        cause: error,
+      }),
   });
 ```
 
 ### Session Management
 
 **セッション保存先**:
+
 - PostgreSQL（推奨: スケーラブル、永続化）
 - Redis（オプション: 高速、TTL 管理が容易）
 
 **セッションスキーマ**:
+
 ```sql
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -81,6 +84,7 @@ CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 ```
 
 **セッション更新**:
+
 - Access token の有効期限切れ前に自動更新
 - Refresh token で新しい access token を取得
 
@@ -90,34 +94,34 @@ CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 
 ### ユーザーロール
 
-| Role | 説明 | 主な用途 |
-|------|------|----------|
-| **Admin** | 管理者 | すべての操作、ユーザー管理、設定変更 |
-| **Executor** | 実行者 | シナリオ作成・編集、テスト実行 |
-| **Viewer** | 閲覧者 | テスト結果の閲覧のみ |
-| **Approver** | 承認者 | テストランの承認、結果閲覧 |
+| Role         | 説明   | 主な用途                             |
+| ------------ | ------ | ------------------------------------ |
+| **Admin**    | 管理者 | すべての操作、ユーザー管理、設定変更 |
+| **Executor** | 実行者 | シナリオ作成・編集、テスト実行       |
+| **Viewer**   | 閲覧者 | テスト結果の閲覧のみ                 |
+| **Approver** | 承認者 | テストランの承認、結果閲覧           |
 
 **複数ロール**: 1 ユーザーが複数ロールを持つことが可能（例: Executor + Approver）
 
 ### Permission Matrix
 
-| Action | Admin | Executor | Viewer | Approver |
-|--------|:-----:|:--------:|:------:|:--------:|
-| **シナリオ** |
-| シナリオ作成 | ✓ | ✓ | ✗ | ✗ |
-| シナリオ編集 | ✓ | ✓ | ✗ | ✗ |
-| シナリオアーカイブ | ✓ | ✗ | ✗ | ✗ |
-| **テストラン** |
-| テストラン作成 | ✓ | ✓ | ✗ | ✗ |
-| テスト実行 | ✓ | ✓ | ✗ | ✗ |
-| テストラン承認 | ✓ | ✗ | ✗ | ✓ |
-| **閲覧** |
-| テスト結果閲覧 | ✓ | ✓ | ✓ | ✓ |
-| レポート表示 | ✓ | ✓ | ✓ | ✓ |
-| **管理** |
-| ユーザー管理 | ✓ | ✗ | ✗ | ✗ |
-| プロジェクト設定 | ✓ | ✗ | ✗ | ✗ |
-| 統合設定（GitHub/Linear/Slack） | ✓ | ✗ | ✗ | ✗ |
+| Action                          | Admin | Executor | Viewer | Approver |
+| ------------------------------- | :---: | :------: | :----: | :------: |
+| **シナリオ**                    |
+| シナリオ作成                    |   ✓   |    ✓     |   ✗    |    ✗     |
+| シナリオ編集                    |   ✓   |    ✓     |   ✗    |    ✗     |
+| シナリオアーカイブ              |   ✓   |    ✗     |   ✗    |    ✗     |
+| **テストラン**                  |
+| テストラン作成                  |   ✓   |    ✓     |   ✗    |    ✗     |
+| テスト実行                      |   ✓   |    ✓     |   ✗    |    ✗     |
+| テストラン承認                  |   ✓   |    ✗     |   ✗    |    ✓     |
+| **閲覧**                        |
+| テスト結果閲覧                  |   ✓   |    ✓     |   ✓    |    ✓     |
+| レポート表示                    |   ✓   |    ✓     |   ✓    |    ✓     |
+| **管理**                        |
+| ユーザー管理                    |   ✓   |    ✗     |   ✗    |    ✗     |
+| プロジェクト設定                |   ✓   |    ✗     |   ✗    |    ✗     |
+| 統合設定（GitHub/Linear/Slack） |   ✓   |    ✗     |   ✗    |    ✗     |
 
 ### Domain Model
 
@@ -168,17 +172,17 @@ const rolePermissions: Record<Role, readonly Permission[]> = {
     "test-run:approve",
     "test-run:view",
     "user:manage",
-    "project:configure"
+    "project:configure",
   ],
   executor: [
     "scenario:create",
     "scenario:edit",
     "test-run:create",
     "test-run:execute",
-    "test-run:view"
+    "test-run:view",
   ],
   viewer: ["test-run:view"],
-  approver: ["test-run:view", "test-run:approve"]
+  approver: ["test-run:view", "test-run:approve"],
 };
 
 export const hasPermission = (user: User, permission: Permission): boolean => {
@@ -189,12 +193,15 @@ export const hasPermission = (user: User, permission: Permission): boolean => {
   return user.roles.some((role) => rolePermissions[role].includes(permission));
 };
 
-export const requirePermission = (user: User, permission: Permission): boolean => {
+export const requirePermission = (
+  user: User,
+  permission: Permission,
+): boolean => {
   if (!hasPermission(user, permission)) {
     throw new UnauthorizedError({
       userId: user.id,
       permission,
-      message: `User does not have permission: ${permission}`
+      message: `User does not have permission: ${permission}`,
     });
   }
   return true;
@@ -227,8 +234,8 @@ export const createScenario = (input: CreateScenarioInput) =>
         new UnauthorizedError({
           action: "scenario:create",
           userId: currentUser.id,
-          message: "シナリオを作成する権限がありません"
-        })
+          message: "シナリオを作成する権限がありません",
+        }),
       );
     }
 
@@ -239,7 +246,7 @@ export const createScenario = (input: CreateScenarioInput) =>
 
     yield* gitRepo.commitFiles([
       { path: `scenarios/${input.id}.yml`, content: yaml },
-      { path: `scenarios/${input.id}.md`, content: markdown }
+      { path: `scenarios/${input.id}.md`, content: markdown },
     ]);
 
     return { id: input.id, version: yield* gitRepo.getCurrentCommit() };
@@ -254,7 +261,10 @@ Token 検証とユーザー情報の取得:
 // infrastructure/adapters/auth-adapter.ts
 import { Effect, Layer, Context } from "effect";
 import * as jose from "jose";
-import { AuthService, TokenValidationError } from "~/application/ports/auth-service";
+import {
+  AuthService,
+  TokenValidationError,
+} from "~/application/ports/auth-service";
 import { User } from "~/domain/models/user";
 
 export class AuthConfig extends Context.Tag("@config/AuthConfig")<
@@ -278,19 +288,19 @@ export const AuthServiceLive = Layer.effect(
             try: () =>
               jose.jwtVerify(token, config.publicKey, {
                 issuer: config.issuer,
-                audience: config.audience
+                audience: config.audience,
               }),
             catch: (error) =>
               new TokenValidationError({
                 message: "Token validation failed",
-                cause: error
-              })
+                cause: error,
+              }),
           });
 
           return {
             userId: decoded.payload.sub!,
             email: decoded.payload.email as string,
-            name: decoded.payload.name as string
+            name: decoded.payload.name as string,
           };
         }),
 
@@ -298,9 +308,9 @@ export const AuthServiceLive = Layer.effect(
         Effect.gen(function* () {
           // Refresh token logic
           // ...
-        })
+        }),
     });
-  })
+  }),
 );
 ```
 
@@ -325,7 +335,7 @@ export async function requireAuth(request: Request) {
 
 export async function requirePermission(
   request: Request,
-  permission: Permission
+  permission: Permission,
 ) {
   const session = await requireAuth(request);
   const user = session.user;
@@ -339,6 +349,7 @@ export async function requirePermission(
 ```
 
 **Page での使用例**:
+
 ```typescript
 // pages/scenarios/new.tsx
 import type { LoaderFunctionArgs } from "react-router";
@@ -363,6 +374,7 @@ export default function NewScenarioPage() {
 ### Admin によるユーザー管理
 
 **機能**:
+
 - ユーザーの招待（メール送信）
 - ロールの割り当て・変更
 - ユーザーの有効化・無効化

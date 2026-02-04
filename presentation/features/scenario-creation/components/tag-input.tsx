@@ -10,7 +10,11 @@ import {
   CommandItem,
   CommandSeparator,
 } from "~/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import { Plus, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 import type { Tag } from "../types/scenario-types";
@@ -87,7 +91,11 @@ export function TagInput({
       {value.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {value.map((tagId) => (
-            <Badge key={tagId} variant={getTagColor(tagId)} className="gap-1 pr-1">
+            <Badge
+              key={tagId}
+              variant={getTagColor(tagId)}
+              className="gap-1 pr-1"
+            >
               {getTagName(tagId)}
               <button
                 type="button"
@@ -107,7 +115,10 @@ export function TagInput({
           <Button
             variant="outline"
             size="sm"
-            className={cn("justify-start", isMaxTags && "opacity-50 cursor-not-allowed")}
+            className={cn(
+              "justify-start",
+              isMaxTags && "opacity-50 cursor-not-allowed",
+            )}
             disabled={isMaxTags}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -129,7 +140,8 @@ export function TagInput({
                 <CommandGroup heading="推奨タグ">
                   {filteredTags.map((tag) => {
                     const color = tag.color || "secondary";
-                    const badgeVariant = color === "primary" ? "default" : color;
+                    const badgeVariant =
+                      color === "primary" ? "default" : color;
                     return (
                       <CommandItem
                         key={tag.id}

@@ -15,6 +15,7 @@ medi-test は、GitHub、Linear、Slack との統合により、テスト範囲�
 ### Release Detection（リリース検出）
 
 **カスタムラベル方式**:
+
 - PR に特定のラベル（例: `release: v2.1.0`）を付与
 - ラベルのパターンマッチングでリリース候補を識別
 - GitHub API でクローズ済み PR を検索
@@ -22,17 +23,19 @@ medi-test は、GitHub、Linear、Slack との統合により、テスト範囲�
 ### Changed Files Analysis（影響範囲分析）
 
 **ファイルパスからカテゴリへのマッピング**:
+
 ```typescript
 // 例: 変更ファイル → テストカテゴリ
 const fileToCategory: Record<string, string[]> = {
   "src/auth/**": ["authentication"],
   "src/payment/**": ["payment"],
   "src/api/**": ["api", "integration"],
-  "src/ui/**": ["ui"]
+  "src/ui/**": ["ui"],
 };
 ```
 
 **マッピングロジック**:
+
 1. PR の変更ファイルリストを取得
 2. 各ファイルパスをカテゴリにマッピング
 3. 該当カテゴリのシナリオを推薦リストに追加
@@ -77,7 +80,9 @@ export class GitHubClient extends Context.Tag("@services/GitHubClient")<
     /**
      * PR の変更ファイルリストを取得
      */
-    getChangedFiles: (prNumber: number) => Effect.Effect<readonly ChangedFile[], GitHubError>;
+    getChangedFiles: (
+      prNumber: number,
+    ) => Effect.Effect<readonly ChangedFile[], GitHubError>;
 
     /**
      * PR の詳細情報を取得
@@ -93,7 +98,12 @@ export class GitHubClient extends Context.Tag("@services/GitHubClient")<
 // infrastructure/adapters/github-adapter.ts
 import { Effect, Layer, Context } from "effect";
 import { Octokit } from "@octokit/rest";
-import { GitHubClient, GitHubError, type PR, type ChangedFile } from "~/application/ports/github-client";
+import {
+  GitHubClient,
+  GitHubError,
+  type PR,
+  type ChangedFile,
+} from "~/application/ports/github-client";
 
 // Octokit インスタンスを Context として定義
 export class OctokitInstance extends Context.Tag("@infra/Octokit")<
@@ -115,20 +125,20 @@ export const GitHubClientLive = Layer.effect(
                 owner: "medimo",
                 repo: "main",
                 state: "closed",
-                per_page: 100
+                per_page: 100,
               }),
             catch: (error) =>
               new GitHubError({
                 message: "Failed to fetch PRs",
-                cause: error
-              })
+                cause: error,
+              }),
           });
 
           // ラベルでフィルタリング
           const filtered = result.data.filter((pr) =>
-            pr.labels.some((l) =>
-              typeof l === "object" && l.name?.includes(label)
-            )
+            pr.labels.some(
+              (l) => typeof l === "object" && l.name?.includes(label),
+            ),
           );
 
           return filtered.map((pr) => ({
@@ -139,7 +149,7 @@ export const GitHubClientLive = Layer.effect(
               .map((l) => (typeof l === "object" ? l.name : l))
               .filter((name): name is string => name !== undefined),
             state: pr.state as "open" | "closed",
-            mergedAt: pr.merged_at ? new Date(pr.merged_at) : null
+            mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
           }));
         }),
 
@@ -151,13 +161,13 @@ export const GitHubClientLive = Layer.effect(
                 owner: "medimo",
                 repo: "main",
                 pull_number: prNumber,
-                per_page: 100
+                per_page: 100,
               }),
             catch: (error) =>
               new GitHubError({
                 message: `Failed to fetch changed files for PR #${prNumber}`,
-                cause: error
-              })
+                cause: error,
+              }),
           });
 
           return result.data.map((file) => ({
@@ -165,7 +175,7 @@ export const GitHubClientLive = Layer.effect(
             status: file.status as "added" | "modified" | "removed" | "renamed",
             additions: file.additions,
             deletions: file.deletions,
-            changes: file.changes
+            changes: file.changes,
           }));
         }),
 
@@ -176,13 +186,13 @@ export const GitHubClientLive = Layer.effect(
               octokit.rest.pulls.get({
                 owner: "medimo",
                 repo: "main",
-                pull_number: prNumber
+                pull_number: prNumber,
               }),
             catch: (error) =>
               new GitHubError({
                 message: `Failed to fetch PR #${prNumber}`,
-                cause: error
-              })
+                cause: error,
+              }),
           });
 
           const pr = result.data;
@@ -194,25 +204,23 @@ export const GitHubClientLive = Layer.effect(
               .map((l) => (typeof l === "object" ? l.name : l))
               .filter((name): name is string => name !== undefined),
             state: pr.state as "open" | "closed",
-            mergedAt: pr.merged_at ? new Date(pr.merged_at) : null
+            mergedAt: pr.merged_at ? new Date(pr.merged_at) : null,
           };
-        })
+        }),
     });
-  })
+  }),
 );
 
 // Octokit インスタンスの Layer
 export const OctokitLive = Layer.succeed(
   OctokitInstance,
   new Octokit({
-    auth: process.env.GITHUB_TOKEN
-  })
+    auth: process.env.GITHUB_TOKEN,
+  }),
 );
 
 // 統合 Layer
-export const GitHubLayer = GitHubClientLive.pipe(
-  Layer.provide(OctokitLive)
-);
+export const GitHubLayer = GitHubClientLive.pipe(Layer.provide(OctokitLive));
 ```
 
 ### Use Case 実装例
@@ -234,7 +242,7 @@ export const suggestTestScope = (releaseLabel: string) =>
     // 2. 全 PR の変更ファイルを取得
     const allChangedFiles = yield* Effect.all(
       prs.map((pr) => github.getChangedFiles(pr.number)),
-      { concurrency: 5 }
+      { concurrency: 5 },
     );
 
     const flattenedFiles = allChangedFiles.flat();
@@ -263,7 +271,7 @@ export const suggestTestScope = (releaseLabel: string) =>
       prs,
       changedFiles: flattenedFiles,
       categories,
-      suggestedScenarios: sorted
+      suggestedScenarios: sorted,
     };
   });
 
@@ -275,7 +283,7 @@ const extractCategories = (files: readonly ChangedFile[]): string[] => {
     "src/payment/": ["payment"],
     "src/api/": ["api", "integration"],
     "src/ui/": ["ui"],
-    "src/db/": ["integration", "performance"]
+    "src/db/": ["integration", "performance"],
   };
 
   for (const file of files) {
@@ -304,6 +312,7 @@ const extractCategories = (files: readonly ChangedFile[]): string[] => {
 ### Issue Information Retrieval
 
 **取得する情報**:
+
 - Issue タイトルと説明
 - ラベル（例: `area:auth`, `type:bug`）
 - 優先度（Urgent, High, Medium, Low）
@@ -311,12 +320,13 @@ const extractCategories = (files: readonly ChangedFile[]): string[] => {
 - 関連 PR 番号
 
 **優先度マッピング**:
+
 ```typescript
 const linearToImportance = {
-  "0": "critical",  // Urgent
-  "1": "high",      // High
-  "2": "medium",    // Medium
-  "3": "low"        // Low
+  "0": "critical", // Urgent
+  "1": "high", // High
+  "2": "medium", // Medium
+  "3": "low", // Low
 } as const;
 ```
 
@@ -336,7 +346,7 @@ export interface LinearIssue {
   readonly title: string;
   readonly description: string;
   readonly labels: readonly string[];
-  readonly priority: 0 | 1 | 2 | 3;  // 0=Urgent, 1=High, 2=Medium, 3=Low
+  readonly priority: 0 | 1 | 2 | 3; // 0=Urgent, 1=High, 2=Medium, 3=Low
   readonly state: string;
   readonly relatedPRs: readonly number[];
 }
@@ -352,7 +362,9 @@ export class LinearClient extends Context.Tag("@services/LinearClient")<
     /**
      * 複数の Issue を一括取得
      */
-    getIssues: (issueIds: readonly string[]) => Effect.Effect<readonly LinearIssue[], LinearError>;
+    getIssues: (
+      issueIds: readonly string[],
+    ) => Effect.Effect<readonly LinearIssue[], LinearError>;
   }
 >() {}
 ```
@@ -363,13 +375,17 @@ export class LinearClient extends Context.Tag("@services/LinearClient")<
 // infrastructure/adapters/linear-adapter.ts
 import { Effect, Layer } from "effect";
 import { LinearClient } from "@linear/sdk";
-import { LinearClient as LinearClientPort, LinearError, type LinearIssue } from "~/application/ports/linear-client";
+import {
+  LinearClient as LinearClientPort,
+  LinearError,
+  type LinearIssue,
+} from "~/application/ports/linear-client";
 
 export const LinearClientLive = Layer.effect(
   LinearClientPort,
   Effect.gen(function* () {
     const client = new LinearClient({
-      apiKey: process.env.LINEAR_API_KEY
+      apiKey: process.env.LINEAR_API_KEY,
     });
 
     return LinearClientPort.of({
@@ -386,14 +402,14 @@ export const LinearClientLive = Layer.effect(
             catch: (error) =>
               new LinearError({
                 message: `Failed to fetch issue ${issueId}`,
-                cause: error
-              })
+                cause: error,
+              }),
           });
 
           // ラベルを取得
           const labels = yield* Effect.tryPromise({
             try: () => issue.labels(),
-            catch: () => new LinearError({ message: "Failed to fetch labels" })
+            catch: () => new LinearError({ message: "Failed to fetch labels" }),
           });
 
           // 関連 PR を抽出（Issue の説明から GitHub PR 番号を抽出）
@@ -406,7 +422,7 @@ export const LinearClientLive = Layer.effect(
             labels: labels.nodes.map((l) => l.name),
             priority: issue.priority || 3,
             state: (await issue.state)?.name || "Unknown",
-            relatedPRs: prNumbers
+            relatedPRs: prNumbers,
           };
         }),
 
@@ -414,11 +430,11 @@ export const LinearClientLive = Layer.effect(
         Effect.gen(function* () {
           return yield* Effect.all(
             issueIds.map((id) => LinearClientPort.getIssue(id)),
-            { concurrency: 5 }
+            { concurrency: 5 },
           );
-        })
+        }),
     });
-  })
+  }),
 );
 
 // GitHub PR 番号を抽出（例: "#123", "PR #456"）
@@ -437,9 +453,7 @@ import { Effect } from "effect";
 import { LinearClient } from "~/application/ports/linear-client";
 import { GitHubClient } from "~/application/ports/github-client";
 
-export const enrichTestScopeWithLinear = (
-  linearIssueIds: readonly string[]
-) =>
+export const enrichTestScopeWithLinear = (linearIssueIds: readonly string[]) =>
   Effect.gen(function* () {
     const linear = yield* LinearClient;
     const github = yield* GitHubClient;
@@ -451,27 +465,27 @@ export const enrichTestScopeWithLinear = (
     const prNumbers = issues.flatMap((issue) => issue.relatedPRs);
     const changedFilesPerPR = yield* Effect.all(
       prNumbers.map((prNum) => github.getChangedFiles(prNum)),
-      { concurrency: 5 }
+      { concurrency: 5 },
     );
 
     const allChangedFiles = changedFilesPerPR.flat();
 
     // 3. Linear のラベルからカテゴリを抽出
     const categories = extractCategoriesFromLabels(
-      issues.flatMap((issue) => issue.labels)
+      issues.flatMap((issue) => issue.labels),
     );
 
     // 4. Linear の優先度から重要度を決定
     const importanceLevels = issues.map((issue) => ({
       issueId: issue.id,
-      importance: mapPriorityToImportance(issue.priority)
+      importance: mapPriorityToImportance(issue.priority),
     }));
 
     return {
       issues,
       changedFiles: allChangedFiles,
       categories,
-      importanceLevels
+      importanceLevels,
     };
   });
 
@@ -480,7 +494,7 @@ const extractCategoriesFromLabels = (labels: readonly string[]): string[] => {
     "area:auth": "authentication",
     "area:payment": "payment",
     "area:api": "api",
-    "area:ui": "ui"
+    "area:ui": "ui",
   };
 
   return labels
@@ -506,17 +520,18 @@ const mapPriorityToImportance = (priority: 0 | 1 | 2 | 3): string => {
 
 ### 通知トリガー
 
-| イベント | タイミング | 対象 |
-|---------|----------|------|
-| **テストラン開始** | テストラン作成時 | 実行者、承認者 |
-| **テストラン完了** | すべてのテスト完了時 | 実行者、承認者、閲覧者 |
-| **Critical テスト失敗** | Critical シナリオ失敗時 | 全員（即時通知） |
-| **承認待ち** | 完了条件を満たし承認待ち状態になった時 | 承認者 |
-| **承認完了** | 承認者が承認した時 | 実行者、閲覧者 |
+| イベント                | タイミング                             | 対象                   |
+| ----------------------- | -------------------------------------- | ---------------------- |
+| **テストラン開始**      | テストラン作成時                       | 実行者、承認者         |
+| **テストラン完了**      | すべてのテスト完了時                   | 実行者、承認者、閲覧者 |
+| **Critical テスト失敗** | Critical シナリオ失敗時                | 全員（即時通知）       |
+| **承認待ち**            | 完了条件を満たし承認待ち状態になった時 | 承認者                 |
+| **承認完了**            | 承認者が承認した時                     | 実行者、閲覧者         |
 
 ### メッセージフォーマット
 
 **テストラン完了通知**:
+
 ```json
 {
   "blocks": [
@@ -558,6 +573,7 @@ const mapPriorityToImportance = (priority: 0 | 1 | 2 | 3): string => {
 ```
 
 **Critical テスト失敗通知**:
+
 ```json
 {
   "blocks": [
@@ -623,14 +639,16 @@ export class SlackNotifier extends Context.Tag("@services/SlackNotifier")<
     /**
      * テストラン完了通知
      */
-    notifyTestRunCompleted: (testRunId: string) => Effect.Effect<void, SlackError>;
+    notifyTestRunCompleted: (
+      testRunId: string,
+    ) => Effect.Effect<void, SlackError>;
 
     /**
      * Critical テスト失敗通知
      */
     notifyCriticalTestFailed: (
       testRunId: string,
-      itemId: string
+      itemId: string,
     ) => Effect.Effect<void, SlackError>;
   }
 >() {}
@@ -641,7 +659,11 @@ export class SlackNotifier extends Context.Tag("@services/SlackNotifier")<
 ```typescript
 // infrastructure/adapters/slack-adapter.ts
 import { Effect, Layer, Context } from "effect";
-import { SlackNotifier, SlackError, type SlackMessage } from "~/application/ports/slack-notifier";
+import {
+  SlackNotifier,
+  SlackError,
+  type SlackMessage,
+} from "~/application/ports/slack-notifier";
 import { TestRunRepository } from "~/application/ports/test-run-repository";
 
 export class SlackWebhookURL extends Context.Tag("@config/SlackWebhookURL")<
@@ -662,13 +684,13 @@ export const SlackNotifierLive = Layer.effect(
             fetch(webhookURL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(message)
+              body: JSON.stringify(message),
             }),
           catch: (error) =>
             new SlackError({
               message: "Failed to send Slack message",
-              cause: error
-            })
+              cause: error,
+            }),
         }).pipe(Effect.asVoid),
 
       notifyTestRunCompleted: (testRunId) =>
@@ -676,10 +698,12 @@ export const SlackNotifierLive = Layer.effect(
           const testRun = yield* testRunRepo.findById(testRunId);
           const items = yield* testRunRepo.findItems(testRunId);
 
-          const successCount = items.filter((i) => i.result === "success").length;
+          const successCount = items.filter(
+            (i) => i.result === "success",
+          ).length;
           const failCount = items.filter((i) => i.result === "fail").length;
           const notExecutedCount = items.filter(
-            (i) => i.result === "not_executed"
+            (i) => i.result === "not_executed",
           ).length;
           const passRate = ((successCount / items.length) * 100).toFixed(1);
 
@@ -689,17 +713,26 @@ export const SlackNotifierLive = Layer.effect(
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `✅ *テストラン完了: ${testRun.title}*`
-                }
+                  text: `✅ *テストラン完了: ${testRun.title}*`,
+                },
               },
               {
                 type: "section",
                 fields: [
-                  { type: "mrkdwn", text: `*成功:* ${successCount}/${items.length}` },
-                  { type: "mrkdwn", text: `*失敗:* ${failCount}/${items.length}` },
-                  { type: "mrkdwn", text: `*未実施:* ${notExecutedCount}/${items.length}` },
-                  { type: "mrkdwn", text: `*合格率:* ${passRate}%` }
-                ]
+                  {
+                    type: "mrkdwn",
+                    text: `*成功:* ${successCount}/${items.length}`,
+                  },
+                  {
+                    type: "mrkdwn",
+                    text: `*失敗:* ${failCount}/${items.length}`,
+                  },
+                  {
+                    type: "mrkdwn",
+                    text: `*未実施:* ${notExecutedCount}/${items.length}`,
+                  },
+                  { type: "mrkdwn", text: `*合格率:* ${passRate}%` },
+                ],
               },
               {
                 type: "actions",
@@ -707,11 +740,11 @@ export const SlackNotifierLive = Layer.effect(
                   {
                     type: "button",
                     text: { type: "plain_text", text: "レポートを表示" },
-                    url: `${process.env.APP_URL}/test-runs/${testRunId}`
-                  }
-                ]
-              }
-            ]
+                    url: `${process.env.APP_URL}/test-runs/${testRunId}`,
+                  },
+                ],
+              },
+            ],
           };
 
           yield* SlackNotifier.sendMessage(message);
@@ -727,22 +760,22 @@ export const SlackNotifierLive = Layer.effect(
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: "🚨 *Critical テスト失敗*"
-                }
+                  text: "🚨 *Critical テスト失敗*",
+                },
               },
               {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `*シナリオ:* ${item.scenarioTitle}\n*カテゴリ:* ${item.category}\n*実行者:* ${item.executedBy?.name || "Unknown"}`
-                }
+                  text: `*シナリオ:* ${item.scenarioTitle}\n*カテゴリ:* ${item.category}\n*実行者:* ${item.executedBy?.name || "Unknown"}`,
+                },
               },
               {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `*失敗理由:*\n${item.notes || "詳細なし"}`
-                }
+                  text: `*失敗理由:*\n${item.notes || "詳細なし"}`,
+                },
               },
               {
                 type: "actions",
@@ -751,17 +784,17 @@ export const SlackNotifierLive = Layer.effect(
                     type: "button",
                     text: { type: "plain_text", text: "詳細を確認" },
                     url: `${process.env.APP_URL}/test-runs/${testRunId}/items/${itemId}`,
-                    style: "danger"
-                  }
-                ]
-              }
-            ]
+                    style: "danger",
+                  },
+                ],
+              },
+            ],
           };
 
           yield* SlackNotifier.sendMessage(message);
-        })
+        }),
     });
-  })
+  }),
 );
 ```
 
@@ -781,11 +814,9 @@ import { SlackNotifierLive, SlackWebhookURL } from "../adapters/slack-adapter";
 export const IntegrationsLayer = Layer.mergeAll(
   GitHubLayer,
   LinearClientLive,
-  SlackNotifierLive
+  SlackNotifierLive,
 ).pipe(
-  Layer.provide(
-    Layer.succeed(SlackWebhookURL, process.env.SLACK_WEBHOOK_URL!)
-  )
+  Layer.provide(Layer.succeed(SlackWebhookURL, process.env.SLACK_WEBHOOK_URL!)),
 );
 ```
 

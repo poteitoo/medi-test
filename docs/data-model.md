@@ -5,46 +5,59 @@
 ## 主要エンティティ
 
 Project
+
 - 代表フィールド: `id`, `name`, `key`, `status`
 
 Environment
+
 - 代表フィールド: `id`, `projectId`, `name`, `type`, `status`
 
 User
+
 - 代表フィールド: `id`, `name`, `email`, `status`
 
 Role
+
 - 代表フィールド: `id`, `name`, `permissions`
 
 Scenario
+
 - 代表フィールド: `id`, `title`, `purpose`, `preconditions`, `steps`, `expected`, `tags`, `status`, `version`, `defaultImportance`
 
 ScenarioVersion
+
 - 代表フィールド: `id`, `scenarioId`, `version`, `createdAt`, `createdBy`
 
 Release
+
 - 代表フィールド: `id`, `projectId`, `environmentId`, `tag`, `prRefs`, `linearRefs`, `plannedAt`
 
 TestRun
+
 - 代表フィールド: `id`, `releaseId`, `scope`, `assignees`, `dueAt`, `status`, `completionPolicy`
 
 TestRunItem
+
 - 代表フィールド: `id`, `testRunId`, `scenarioId`, `required`, `importance`, `assigneeId`, `result`, `executedAt`, `notes`, `evidence`
 
 ## 代表的なステータス
 
 Scenario.status
+
 - `draft`, `active`, `archived`
 
 TestRun.status
+
 - `planned`, `in_progress`, `completed`
 
 TestRunItem.result
+
 - `success`, `fail`, `not_executed`
 
 ## 完了条件（例）
 
 TestRun.completionPolicy
+
 - 重要度別の合格条件を保持
 - 例: `high` は 100% 成功、`medium` は 95% 成功、`low` は 90% 成功
 
@@ -172,8 +185,8 @@ TestRunItem.evidence カラムは JSONB 型で、以下の構造を持ちます�
 ```typescript
 interface Evidence {
   screenshots?: Array<{
-    url: string;              // S3 URL or Base64
-    timestamp: string;        // ISO 8601
+    url: string; // S3 URL or Base64
+    timestamp: string; // ISO 8601
     caption: string;
   }>;
   logs?: Array<{
@@ -183,10 +196,10 @@ interface Evidence {
   }>;
   browserInfo?: {
     userAgent: string;
-    viewport: string;         // "1920x1080"
-    browser: string;          // "Chrome 120"
+    viewport: string; // "1920x1080"
+    browser: string; // "Chrome 120"
   };
-  notes?: string;             // 自由記述
+  notes?: string; // 自由記述
   attachments?: Array<{
     filename: string;
     url: string;
@@ -277,6 +290,7 @@ CREATE TABLE test_runs (
 ```
 
 **scope カラム例**:
+
 ```json
 {
   "git_repository": "https://github.com/medimo/scenarios",
@@ -293,6 +307,7 @@ CREATE TABLE test_runs (
 ```
 
 **completion_policy カラム例**:
+
 ```json
 {
   "critical": { "pass_rate": 100, "required_count": "all" },

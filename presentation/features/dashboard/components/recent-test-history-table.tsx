@@ -17,7 +17,9 @@ interface RecentTestHistoryTableProps {
   testRuns: TestRun[];
 }
 
-export function RecentTestHistoryTable({ testRuns }: RecentTestHistoryTableProps) {
+export function RecentTestHistoryTable({
+  testRuns,
+}: RecentTestHistoryTableProps) {
   return (
     <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-white/20 shadow-lg">
       <CardHeader>
@@ -40,7 +42,10 @@ export function RecentTestHistoryTable({ testRuns }: RecentTestHistoryTableProps
             <TableBody>
               {testRuns.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     テスト履歴がありません
                   </TableCell>
                 </TableRow>
@@ -50,11 +55,15 @@ export function RecentTestHistoryTable({ testRuns }: RecentTestHistoryTableProps
                     key={run.id}
                     className="cursor-pointer hover:bg-accent/50 transition-colors"
                   >
-                    <TableCell className="font-mono text-xs">{run.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {run.id}
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{run.title}</p>
-                        <p className="text-xs text-muted-foreground">{run.projectName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {run.projectName}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>

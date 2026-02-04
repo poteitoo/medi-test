@@ -7,7 +7,11 @@ import {
   ChartTooltipContent,
 } from "~/components/ui/chart";
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
-import { projectStatsChartConfig, getSuccessRateColor, getHealthStatus } from "../utils/chart-config";
+import {
+  projectStatsChartConfig,
+  getSuccessRateColor,
+  getHealthStatus,
+} from "../utils/chart-config";
 import type { ProjectStats } from "../types/dashboard";
 
 interface ProjectStatsCardProps {
@@ -39,7 +43,10 @@ export function ProjectStatsCard({ stats }: ProjectStatsCardProps) {
           </TabsContent>
 
           <TabsContent value="production" className="mt-4 space-y-4">
-            <EnvironmentStats data={stats.production} environment="production" />
+            <EnvironmentStats
+              data={stats.production}
+              environment="production"
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -111,10 +118,18 @@ function EnvironmentStats({
       {/* 横棒グラフ */}
       <div className="mt-6">
         <h4 className="text-sm font-medium mb-3">プロジェクト別成功率比較</h4>
-        <ChartContainer config={projectStatsChartConfig} className="h-[200px] w-full">
+        <ChartContainer
+          config={projectStatsChartConfig}
+          className="h-[200px] w-full"
+        >
           <BarChart data={chartData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis type="number" domain={[0, 100]} tickLine={false} axisLine={false} />
+            <XAxis
+              type="number"
+              domain={[0, 100]}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
               type="category"
               dataKey="name"

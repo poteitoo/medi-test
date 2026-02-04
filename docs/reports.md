@@ -6,11 +6,11 @@ medi-test は、テストラン結果を **HTML（Web表示）** と **CSV/Excel
 
 ## レポートタイプ
 
-| タイプ | 用途 | 生成方法 | ストレージ |
-|--------|------|----------|-----------|
-| **HTML Report** | Web表示、ダッシュボード | 動的生成（React Component） | 保存しない |
-| **CSV Export** | Excel分析、監査証跡 | On-demand | ダウンロード |
-| **Excel Export** | リッチなレポート（将来対応） | On-demand | ダウンロード |
+| タイプ           | 用途                         | 生成方法                    | ストレージ   |
+| ---------------- | ---------------------------- | --------------------------- | ------------ |
+| **HTML Report**  | Web表示、ダッシュボード      | 動的生成（React Component） | 保存しない   |
+| **CSV Export**   | Excel分析、監査証跡          | On-demand                   | ダウンロード |
+| **Excel Export** | リッチなレポート（将来対応） | On-demand                   | ダウンロード |
 
 ---
 
@@ -46,7 +46,7 @@ export const generateTestRunReport = (testRunId: string) =>
     return {
       testRun,
       items,
-      stats
+      stats,
     };
   });
 
@@ -73,13 +73,13 @@ const calculateStats = (items: TestRunItem[]) => {
     executed,
     passRate: parseFloat(passRate.toFixed(1)),
     byImportance,
-    byCategory
+    byCategory,
   };
 };
 
 const groupBy = <T extends Record<string, any>>(
   items: T[],
-  key: keyof T
+  key: keyof T,
 ): Record<string, { total: number; success: number; fail: number }> => {
   const grouped: Record<string, T[]> = {};
 
@@ -97,9 +97,9 @@ const groupBy = <T extends Record<string, any>>(
       {
         total: items.length,
         success: items.filter((i) => i.result === "success").length,
-        fail: items.filter((i) => i.result === "fail").length
-      }
-    ])
+        fail: items.filter((i) => i.result === "fail").length,
+      },
+    ]),
   );
 };
 ```
@@ -202,7 +202,7 @@ export const CSVExporterLive = Layer.effect(
             ExecutedAt: item.executedAt?.toISOString() || "",
             DurationSeconds: item.executionDurationSeconds || 0,
             Evidence: item.evidence ? "あり" : "なし",
-            Notes: item.notes || ""
+            Notes: item.notes || "",
           }));
 
           // CSV文字列に変換
@@ -222,14 +222,14 @@ export const CSVExporterLive = Layer.effect(
               "ExecutedAt",
               "DurationSeconds",
               "Evidence",
-              "Notes"
-            ]
+              "Notes",
+            ],
           });
 
           return csv;
-        })
+        }),
     });
-  })
+  }),
 );
 
 const formatResult = (result: string | null): string => {
@@ -238,7 +238,7 @@ const formatResult = (result: string | null): string => {
     fail: "失敗",
     not_executed: "未実施",
     blocked: "ブロック",
-    skipped: "スキップ"
+    skipped: "スキップ",
   };
   return result ? map[result] || result : "未実施";
 };
@@ -265,8 +265,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`
-    }
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
   });
 }
 ```
@@ -313,13 +313,13 @@ export const exportToExcel = async (testRunId: string) => {
   const summarySheet = workbook.addWorksheet("サマリー");
   summarySheet.columns = [
     { header: "項目", key: "item", width: 20 },
-    { header: "値", key: "value", width: 15 }
+    { header: "値", key: "value", width: 15 },
   ];
   summarySheet.addRows([
     { item: "合計テスト数", value: 50 },
     { item: "成功", value: 45 },
     { item: "失敗", value: 3 },
-    { item: "合格率", value: "93.8%" }
+    { item: "合格率", value: "93.8%" },
   ]);
 
   // シート2: 詳細結果
@@ -327,7 +327,7 @@ export const exportToExcel = async (testRunId: string) => {
   detailSheet.columns = [
     { header: "シナリオID", key: "scenarioId", width: 20 },
     { header: "タイトル", key: "title", width: 30 },
-    { header: "結果", key: "result", width: 10 }
+    { header: "結果", key: "result", width: 10 },
   ];
 
   // Excel ファイルをバッファに変換
@@ -343,6 +343,7 @@ export const exportToExcel = async (testRunId: string) => {
 ### 自動レポート生成
 
 **ユースケース**:
+
 - 毎日AM9時に前日のテスト結果をメール送信
 - 毎週月曜日に週次サマリーを Slack に投稿
 
@@ -370,7 +371,7 @@ export const scheduleDailyReport = (projectId: string, recipients: string[]) =>
         yield* emailer.send({
           to: recipients,
           subject: `日次テストレポート - ${new Date().toLocaleDateString("ja-JP")}`,
-          html
+          html,
         });
       }).pipe(Effect.provide(AppLayer));
 
@@ -425,7 +426,7 @@ export const exportTestRunAsync = (testRunId: string, userId: string) =>
     const jobId = yield* jobQueue.enqueue({
       type: "csv_export",
       testRunId,
-      userId
+      userId,
     });
 
     // ジョブIDを返す（クライアントはポーリングで進捗確認）

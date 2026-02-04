@@ -6,10 +6,22 @@ import {
   ChartTooltipContent,
 } from "~/components/ui/chart";
 import type { ChartConfig } from "~/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { CheckCircle2, XCircle, Clock, PlayCircle } from "lucide-react";
 import { StatCard } from "./stat-card";
-import { executionTrendChartConfig, successRateChartConfig } from "../utils/chart-config";
+import {
+  executionTrendChartConfig,
+  successRateChartConfig,
+} from "../utils/chart-config";
 import type { TestSummary, ExecutionTrend } from "../types/dashboard";
 
 interface TestSummaryCardProps {
@@ -17,7 +29,10 @@ interface TestSummaryCardProps {
   executionTrends: ExecutionTrend[];
 }
 
-export function TestSummaryCard({ summary, executionTrends }: TestSummaryCardProps) {
+export function TestSummaryCard({
+  summary,
+  executionTrends,
+}: TestSummaryCardProps) {
   // 円グラフ用のデータ
   const pieData = [
     {
@@ -52,7 +67,10 @@ export function TestSummaryCard({ summary, executionTrends }: TestSummaryCardPro
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 左側: 成功率円グラフ */}
           <div className="flex flex-col items-center justify-center">
-            <ChartContainer config={successRateChartConfig} className="h-[250px] w-full">
+            <ChartContainer
+              config={successRateChartConfig}
+              className="h-[250px] w-full"
+            >
               <PieChart>
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Pie
@@ -72,7 +90,9 @@ export function TestSummaryCard({ summary, executionTrends }: TestSummaryCardPro
               </PieChart>
             </ChartContainer>
             <div className="mt-4 text-center">
-              <p className="text-4xl font-bold">{summary.averageSuccessRate}%</p>
+              <p className="text-4xl font-bold">
+                {summary.averageSuccessRate}%
+              </p>
               <p className="text-sm text-muted-foreground">平均成功率</p>
             </div>
           </div>
@@ -148,7 +168,10 @@ function ExecutionTrendChart({ data }: { data: ExecutionTrend[] }) {
   });
 
   return (
-    <ChartContainer config={executionTrendChartConfig} className="h-[300px] w-full">
+    <ChartContainer
+      config={executionTrendChartConfig}
+      className="h-[300px] w-full"
+    >
       <BarChart data={formattedData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis

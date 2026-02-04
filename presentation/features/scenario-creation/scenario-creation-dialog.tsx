@@ -90,9 +90,7 @@ export function ScenarioCreationDialog({
                       minHeight="200px"
                     />
                   </FormControl>
-                  <FormDescription>
-                    Markdown形式で入力できます
-                  </FormDescription>
+                  <FormDescription>Markdown形式で入力できます</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

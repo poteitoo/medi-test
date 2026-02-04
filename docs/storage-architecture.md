@@ -6,15 +6,15 @@ medi-test は、データの特性に応じて **Git** と **PostgreSQL** を使
 
 ### Git vs PostgreSQL の使い分け
 
-| 観点 | Git (Scenarios) | PostgreSQL (Results) |
-|------|-----------------|----------------------|
-| **データ特性** | 不変、バージョン管理必要 | 可変、リアルタイム更新 |
-| **アクセスパターン** | 読み取り中心 | 読み書き均等 |
-| **履歴管理** | Git の commit history | 監査ログテーブル |
-| **スケーリング** | 水平スケール不要 | Read replica で対応 |
-| **検索** | Grep/Ripgrep | SQL index |
-| **トランザクション** | コミット単位 | ACID トランザクション |
-| **監査証跡** | コミットログ、差分 | Audit log テーブル |
+| 観点                 | Git (Scenarios)          | PostgreSQL (Results)   |
+| -------------------- | ------------------------ | ---------------------- |
+| **データ特性**       | 不変、バージョン管理必要 | 可変、リアルタイム更新 |
+| **アクセスパターン** | 読み取り中心             | 読み書き均等           |
+| **履歴管理**         | Git の commit history    | 監査ログテーブル       |
+| **スケーリング**     | 水平スケール不要         | Read replica で対応    |
+| **検索**             | Grep/Ripgrep             | SQL index              |
+| **トランザクション** | コミット単位             | ACID トランザクション  |
+| **監査証跡**         | コミットログ、差分       | Audit log テーブル     |
 
 ### なぜこのハイブリッド戦略を採用したか
 
@@ -301,6 +301,7 @@ CREATE INDEX idx_test_runs_status ON test_runs(status);
 ```
 
 **scope カラム（JSONB）の例**:
+
 ```json
 {
   "git_repository": "https://github.com/medimo/scenarios",
@@ -323,6 +324,7 @@ CREATE INDEX idx_test_runs_status ON test_runs(status);
 ```
 
 **completion_policy カラム（JSONB）の例**:
+
 ```json
 {
   "critical": { "pass_rate": 100, "required_count": "all" },
@@ -360,6 +362,7 @@ CREATE INDEX idx_test_run_items_result ON test_run_items(result);
 ```
 
 **evidence カラム（JSONB）の例**:
+
 ```json
 {
   "screenshots": [
@@ -437,12 +440,12 @@ export const createTestRun = (input: CreateTestRunInput) =>
     const scope = {
       git_repository: input.gitRepository,
       git_commit: currentCommit,
-      scenarios: input.scenarios.map(s => ({
+      scenarios: input.scenarios.map((s) => ({
         scenarioId: s.id,
-        scenarioVersion: currentCommit,  // Git commit SHA
+        scenarioVersion: currentCommit, // Git commit SHA
         required: s.required,
-        importance: s.importance
-      }))
+        importance: s.importance,
+      })),
     };
 
     const testRun = yield* testRunRepo.create({
@@ -451,7 +454,7 @@ export const createTestRun = (input: CreateTestRunInput) =>
       description: input.description,
       scope,
       completionPolicy: input.completionPolicy,
-      assignedTo: input.assignedTo
+      assignedTo: input.assignedTo,
     });
 
     return testRun;
@@ -463,28 +466,25 @@ export const createTestRun = (input: CreateTestRunInput) =>
 import { Effect } from "effect";
 import type { GitRepository } from "~/application/ports/git-repository";
 
-export const getScenarioAtVersion = (
-  scenarioId: string,
-  version: string
-) =>
+export const getScenarioAtVersion = (scenarioId: string, version: string) =>
   Effect.gen(function* () {
     const gitRepo = yield* GitRepository;
 
     // 特定コミットのファイルを取得
     const yamlContent = yield* gitRepo.getFileAtCommit(
       version,
-      `projects/${scenarioId}.yml`
+      `projects/${scenarioId}.yml`,
     );
 
     const markdownContent = yield* gitRepo.getFileAtCommit(
       version,
-      `projects/${scenarioId}.md`
+      `projects/${scenarioId}.md`,
     );
 
     return {
       yaml: yamlContent,
       markdown: markdownContent,
-      version
+      version,
     };
   });
 ```
@@ -533,7 +533,7 @@ sequenceDiagram
 export const updateScenario = (
   scenarioId: string,
   input: UpdateScenarioInput,
-  baseVersion: string
+  baseVersion: string,
 ) =>
   Effect.gen(function* () {
     const gitRepo = yield* GitRepository;
@@ -543,12 +543,14 @@ export const updateScenario = (
 
     // Base version が古い場合、コンフリクト
     if (baseVersion !== currentHead) {
-      yield* Effect.fail(new ScenarioConflictError({
-        scenarioId,
-        baseVersion,
-        currentVersion: currentHead,
-        message: "シナリオが他のユーザーによって更新されています"
-      }));
+      yield* Effect.fail(
+        new ScenarioConflictError({
+          scenarioId,
+          baseVersion,
+          currentVersion: currentHead,
+          message: "シナリオが他のユーザーによって更新されています",
+        }),
+      );
     }
 
     // 更新処理
@@ -557,7 +559,7 @@ export const updateScenario = (
 
     const newCommit = yield* gitRepo.commit(
       `Update scenario: ${scenarioId}`,
-      input.author
+      input.author,
     );
 
     yield* gitRepo.push();
@@ -586,6 +588,7 @@ CREATE INDEX idx_scenario_cache_commit ON scenario_cache(git_commit);
 ```
 
 **キャッシュロジック**:
+
 1. テストラン作成時、必要なシナリオをキャッシュに保存
 2. Git commit SHA をキーとしてキャッシュ照会
 3. キャッシュミス時のみ Git から読み取り
@@ -665,19 +668,19 @@ for yaml_file in Path("projects").rglob("*.yml"):
 
 ### シナリオ数が増加した場合
 
-| シナリオ数 | 対応策 |
-|-----------|--------|
-| ~1,000 | Git そのまま |
-| ~10,000 | Git Shallow Clone（`--depth 1`） |
-| ~100,000 | Git LFS or Database へ移行検討 |
+| シナリオ数 | 対応策                           |
+| ---------- | -------------------------------- |
+| ~1,000     | Git そのまま                     |
+| ~10,000    | Git Shallow Clone（`--depth 1`） |
+| ~100,000   | Git LFS or Database へ移行検討   |
 
 ### テスト実行結果が増加した場合
 
-| レコード数 | 対応策 |
-|-----------|--------|
-| ~100万 | PostgreSQL パーティショニング不要 |
-| ~1,000万 | テーブルパーティショニング（月別） |
-| ~1億+ | Read Replica + Archiving（S3/Glacier） |
+| レコード数 | 対応策                                 |
+| ---------- | -------------------------------------- |
+| ~100万     | PostgreSQL パーティショニング不要      |
+| ~1,000万   | テーブルパーティショニング（月別）     |
+| ~1億+      | Read Replica + Archiving（S3/Glacier） |
 
 ---
 

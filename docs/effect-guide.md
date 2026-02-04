@@ -368,7 +368,7 @@ export const createScenario = (input: CreateScenarioInput) =>
     // Git にコミット
     yield* gitRepo.commitFiles([
       { path: `scenarios/${input.id}.yml`, content: yamlContent },
-      { path: `scenarios/${input.id}.md`, content: markdownContent }
+      { path: `scenarios/${input.id}.md`, content: markdownContent },
     ]);
 
     const version = yield* gitRepo.getCurrentCommit();
@@ -412,9 +412,7 @@ import { Effect } from "effect";
 import { createScenario } from "~/application/usecases/scenario/create-scenario";
 import { AppLayer } from "~/infrastructure/layers/app-layer";
 
-export const createScenarioWithErrorHandling = (
-  input: CreateScenarioInput,
-) => {
+export const createScenarioWithErrorHandling = (input: CreateScenarioInput) => {
   return Effect.runPromise(
     createScenario(input).pipe(
       Effect.catchTags({

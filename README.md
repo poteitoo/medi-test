@@ -97,10 +97,12 @@ pnpm fmt
 詳細なドキュメントは `docs/` ディレクトリ以下に配置されています。
 
 ### はじめに
+
 - **[プロダクト概要](docs/product-overview.md)** - サービスの目的、ユーザーロール、主要機能
 - **[ワークフロー](docs/workflows.md)** - テストフロー、シナリオ管理、テストケース作成プロセス
 
 ### アーキテクチャ
+
 - **[アーキテクチャ概要](docs/architecture.md)** - レイヤードアーキテクチャ、Port/Adapter パターン、依存方向のルール
 - **[ストレージ戦略](docs/storage-architecture.md)** - Git + PostgreSQL のハイブリッド構成、バージョニング戦略
 - **[認証・認可](docs/authentication.md)** - OAuth 2.0 / OIDC フロー、ロールベースアクセス制御
@@ -108,18 +110,22 @@ pnpm fmt
 - **[外部連携](docs/integrations.md)** - GitHub、Linear、Slack の統合
 
 ### データ設計
+
 - **[データモデル](docs/data-model.md)** - エンティティ定義、リレーションシップ、シナリオファイル形式
 - **[ディレクトリ構造](docs/directory-structure.md)** - 各レイヤーの役割、ファイル配置ルール
 
 ### 実装ガイド
+
 - **[Effect TS 入門](docs/effect-guide.md)** - Effect の基本概念、Tag と Layer の使い方
 - **[実装ガイド](docs/implementation-guide.md)** - 各レイヤーの実装例とステップバイステップガイド
 - **[コーディング規約](docs/coding-standards.md)** - 命名規則、依存関係のルール、Effect TS ベストプラクティス
 
 ### 機能ドキュメント
+
 - **[レポート生成](docs/reports.md)** - HTML/CSV/Excel レポートの実装
 
 ### テスト
+
 - **[テスト戦略](docs/testing.md)** - Unit/Integration/Component テストのガイド
 
 ## プロジェクト構造の概要
@@ -143,6 +149,7 @@ medi-test/
 ```
 
 **依存フロー**:
+
 ```
 pages/ → features/ → components/ui/ → lib/
 ```
@@ -162,10 +169,10 @@ pages/ → features/ → components/ui/ → lib/
 
 medi-test は、データの特性に応じて Git と PostgreSQL を使い分けます：
 
-| データ | ストレージ | 理由 |
-|--------|----------|------|
+| データ             | ストレージ          | 理由                                             |
+| ------------------ | ------------------- | ------------------------------------------------ |
 | **テストシナリオ** | Git (YAML/Markdown) | バージョン管理、監査証跡、レビュー、ブランチ戦略 |
-| **テスト実行結果** | PostgreSQL | リアルタイム更新、複雑なクエリ、トランザクション |
+| **テスト実行結果** | PostgreSQL          | リアルタイム更新、複雑なクエリ、トランザクション |
 
 詳細は [ストレージ戦略](docs/storage-architecture.md) を参照してください。
 
