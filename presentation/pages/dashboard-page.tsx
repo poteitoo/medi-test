@@ -12,7 +12,7 @@ import { EmptyDashboard } from "~/features/dashboard/components/empty-dashboard"
 import { useDashboardData } from "~/features/dashboard/hooks/use-dashboard-data";
 import { ScenarioCreationDialog } from "~/features/scenario-creation/scenario-creation-dialog";
 import { useKeyboardShortcut } from "~/features/scenario-creation/hooks/use-keyboard-shortcut";
-import { prisma } from "db";
+import { prisma } from "repository/libs/db";
 
 export const meta: MetaFunction = () => {
   return [
