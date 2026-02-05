@@ -125,7 +125,7 @@ export function TagInput({
             {isMaxTags ? `タグは最大${maxTags}個まで` : "タグを追加..."}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
+        <PopoverContent className="w-80 p-0" align="start">
           <Command>
             <CommandInput
               placeholder="タグを検索..."

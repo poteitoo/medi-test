@@ -87,7 +87,6 @@ export function ScenarioCreationDialog({
                       placeholder="シナリオの詳細を入力してください..."
                       showToolbar={true}
                       enableVoiceInput={false}
-                      minHeight="200px"
                     />
                   </FormControl>
                   <FormDescription>Markdown形式で入力できます</FormDescription>

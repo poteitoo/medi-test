@@ -26,5 +26,4 @@ export interface TextEditorProps {
   showToolbar?: boolean;
   enableVoiceInput?: boolean;
   className?: string;
-  minHeight?: string;
 }

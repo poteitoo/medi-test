@@ -120,7 +120,7 @@ function EnvironmentStats({
         <h4 className="text-sm font-medium mb-3">プロジェクト別成功率比較</h4>
         <ChartContainer
           config={projectStatsChartConfig}
-          className="h-[200px] w-full"
+          className="h-chart-sm w-full"
         >
           <BarChart data={chartData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

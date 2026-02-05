@@ -379,6 +379,27 @@ import { cn } from "~/lib/utils";
 />;
 ```
 
+## Tailwind CSS Best Practices
+
+### Basic Rules
+
+**❌ Prohibited:** Hard-coding arbitrary values (`h-[500px]`, `w-[300px]`), inline styles
+**✅ Recommended:**
+
+1. Prioritize Tailwind standard scales (`h-64`, `w-96`)
+2. Use custom properties (`h-chart`, `w-widget`)
+3. Semantic specifications (`min-h-screen`, `flex-1`)
+
+### Custom Properties
+
+Defined in app/app.css:
+
+- Chart: `h-chart-xs` to `h-chart-xl` (150px to 500px)
+- Editor: `min-h-editor-min` (8rem)
+- Widget: `w-widget-xs` to `w-widget-lg` (100px to 400px)
+- Viewport: `min-h-viewport` (60vh)
+  For details, refer to [app/app.css](app/app.css) and [docs/coding-standards.md](docs/coding-standards.md).
+
 ## Feature Implementation Guide
 
 ### Simple Feature (Auth-style)

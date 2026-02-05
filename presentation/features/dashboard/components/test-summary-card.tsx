@@ -69,7 +69,7 @@ export function TestSummaryCard({
           <div className="flex flex-col items-center justify-center">
             <ChartContainer
               config={successRateChartConfig}
-              className="h-[250px] w-full"
+              className="h-chart w-full"
             >
               <PieChart>
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -130,7 +130,7 @@ export function TestSummaryCard({
         {/* 下段: 期間別実行トレンド */}
         <div className="mt-6">
           <Tabs defaultValue="7days" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+            <TabsList className="grid w-full grid-cols-3 lg:w-widget-lg">
               <TabsTrigger value="7days">7日間</TabsTrigger>
               <TabsTrigger value="30days">30日間</TabsTrigger>
               <TabsTrigger value="90days">90日間</TabsTrigger>
@@ -170,7 +170,7 @@ function ExecutionTrendChart({ data }: { data: ExecutionTrend[] }) {
   return (
     <ChartContainer
       config={executionTrendChartConfig}
-      className="h-[300px] w-full"
+      className="h-chart-md w-full"
     >
       <BarChart data={formattedData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

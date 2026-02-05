@@ -10,7 +10,7 @@ import { PlusCircle } from "lucide-react";
 
 export function EmptyDashboard() {
   return (
-    <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
+    <div className="container mx-auto p-6 flex items-center justify-center min-h-viewport">
       <Empty>
         <EmptyHeader>
           <EmptyTitle>テスト実行がまだありません</EmptyTitle>

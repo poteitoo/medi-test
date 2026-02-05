@@ -17,7 +17,6 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
       showToolbar = false,
       enableVoiceInput = false,
       className,
-      minHeight = "8rem",
     },
     ref,
   ) => {
@@ -58,11 +57,7 @@ export const TextEditor = React.forwardRef<HTMLDivElement, TextEditorProps>(
           aria-multiline="true"
         >
           {showToolbar && <EditorToolbar editor={editor} />}
-          <EditorContent
-            editor={editor}
-            className="tiptap"
-            style={{ minHeight }}
-          />
+          <EditorContent editor={editor} className="tiptap" />
         </div>
       </div>
     );

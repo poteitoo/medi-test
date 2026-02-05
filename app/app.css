@@ -57,6 +57,35 @@ body {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Chart sizes */
+  --height-chart-xs: 150px;
+  --height-chart-sm: 200px;
+  --height-chart: 250px;
+  --height-chart-md: 300px;
+  --height-chart-lg: 400px;
+  --height-chart-xl: 500px;
+
+  /* Container sizes */
+  --height-container-sm: 300px;
+  --height-container: 400px;
+  --height-container-lg: 500px;
+
+  /* Editor sizes */
+  --height-editor-min: 8rem;
+  --height-editor-sm: 200px;
+  --height-editor: 250px;
+
+  /* Widget sizes */
+  --width-widget-xs: 100px;
+  --width-widget-sm: 200px;
+  --width-widget: 300px;
+  --width-widget-lg: 400px;
+
+  /* Viewport-based */
+  --height-viewport-sm: 40vh;
+  --height-viewport: 60vh;
+  --height-viewport-lg: 80vh;
 }
 
 :root {
@@ -162,7 +191,7 @@ body {
 @layer components {
   /* Tiptap エディタースタイル */
   .tiptap {
-    @apply outline-none min-h-32 p-4;
+    @apply outline-none min-h-editor-min p-4;
   }
 
   .tiptap p.is-editor-empty:first-child::before {

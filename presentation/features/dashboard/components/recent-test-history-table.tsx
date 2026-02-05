@@ -30,7 +30,7 @@ export function RecentTestHistoryTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ラン ID</TableHead>
+                <TableHead className="w-24">ラン ID</TableHead>
                 <TableHead>プロジェクト</TableHead>
                 <TableHead>環境</TableHead>
                 <TableHead>ステータス</TableHead>
