@@ -1,0 +1,889 @@
+openapi: 3.0.3
+info:
+  title: テストマネジメントシステム API
+  version: 1.0.0
+  description: |
+    開発プロジェクト統合（Issue/PR/CI） × バージョン管理（Revision/差分/ベースライン） × 承認ワークフロー（多段・例外承認・監査）を統合したテストマネジメントプラットフォーム
+
+    **主要機能**:
+    - テスト資産の不変リビジョン管理と承認ワークフロー
+    - リリースゲート評価とWaiver（例外承認）
+    - 外部Issue/PR/CI統合
+    - 要件トレーサビリティとカバレッジ管理
+    - 監査ログとコンプライアンス証跡
+
+servers:
+  - url: https://api.medi-test.example.com/v1
+    description: Production
+  - url: http://localhost:5173/api/v1
+    description: Development
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: test-cases
+    description: テストケース管理
+  - name: test-scenarios
+    description: テストシナリオ管理
+  - name: test-scenario-lists
+    description: テストシナリオリスト管理
+  - name: releases
+    description: リリース管理
+  - name: test-runs
+    description: テスト実行と結果記録
+  - name: approvals
+    description: 承認ワークフロー
+  - name: requirements
+    description: 要件トレーサビリティ
+  - name: audit-logs
+    description: 監査ログ
+
+paths:
+  # ============================================
+  # Test Cases
+  # ============================================
+  /test-cases:
+    get:
+      tags: [test-cases]
+      summary: テストケース一覧取得
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/RevisionStatus"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TestCaseWithLatestRevision"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+    post:
+      tags: [test-cases]
+      summary: 新規テストケース作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, title, content]
+              properties:
+                project_id:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                content:
+                  $ref: "#/components/schemas/TestCaseContent"
+                reason:
+                  type: string
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestCaseRevision"
+
+  /test-cases/{caseId}/revisions:
+    get:
+      tags: [test-cases]
+      summary: テストケースのリビジョン履歴取得
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TestCaseRevision"
+
+    post:
+      tags: [test-cases]
+      summary: 新規リビジョン作成 (既存ケースの更新)
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content, reason]
+              properties:
+                title:
+                  type: string
+                content:
+                  $ref: "#/components/schemas/TestCaseContent"
+                reason:
+                  type: string
+                  description: 変更理由 (必須)
+      responses:
+        "201":
+          description: 新リビジョン作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestCaseRevision"
+
+  /test-cases/revisions/{revisionId}/submit-for-review:
+    post:
+      tags: [test-cases]
+      summary: レビュー提出 (Draft → InReview)
+      parameters:
+        - name: revisionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: レビュー提出成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestCaseRevision"
+
+  # ============================================
+  # Releases
+  # ============================================
+  /releases:
+    get:
+      tags: [releases]
+      summary: リリース一覧取得
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ReleaseStatus"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Release"
+
+    post:
+      tags: [releases]
+      summary: 新規リリース作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, name]
+              properties:
+                project_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                description:
+                  type: string
+                build_ref:
+                  type: string
+      responses:
+        "201":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Release"
+
+  /releases/{releaseId}/baselines:
+    post:
+      tags: [releases]
+      summary: Baseline設定 (採用するScenario List Revisionを固定)
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_list_revision_id]
+              properties:
+                source_list_revision_id:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: Baseline設定成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseBaseline"
+
+  /releases/{releaseId}/gate-evaluation:
+    post:
+      tags: [releases]
+      summary: リリースゲート評価実行
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: 評価結果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pass:
+                    type: boolean
+                  violations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
+                          description: 違反ルール (例 "要件カバレッジ100%必須")
+                        details:
+                          type: string
+                          description: 詳細 (例 "要件REQ-123にApprovedテスト資産が紐付いていません")
+                        target_id:
+                          type: string
+                  summary:
+                    type: object
+                    properties:
+                      requirement_coverage:
+                        type: number
+                        format: float
+                      fail_count:
+                        type: integer
+                      unapproved_count:
+                        type: integer
+                      unexecuted_count:
+                        type: integer
+
+  /releases/{releaseId}/waivers:
+    post:
+      tags: [releases]
+      summary: Waiver (例外承認) 発行
+      parameters:
+        - name: releaseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_type, reason, expires_at]
+              properties:
+                target_type:
+                  $ref: "#/components/schemas/WaiverTargetType"
+                target_id:
+                  type: string
+                reason:
+                  type: string
+                expires_at:
+                  type: string
+                  format: date-time
+      responses:
+        "201":
+          description: Waiver発行成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Waiver"
+
+  # ============================================
+  # Test Runs
+  # ============================================
+  /test-runs:
+    post:
+      tags: [test-runs]
+      summary: 新規テストラン作成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [run_group_id, assignee_user_id, source_list_revision_id]
+              properties:
+                run_group_id:
+                  type: string
+                  format: uuid
+                assignee_user_id:
+                  type: string
+                  format: uuid
+                source_list_revision_id:
+                  type: string
+                  format: uuid
+                build_ref:
+                  type: string
+      responses:
+        "201":
+          description: 作成成功 (Run Items自動生成)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestRun"
+
+  /test-runs/{runId}/items/{itemId}/results:
+    post:
+      tags: [test-runs]
+      summary: テスト結果記録
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: "#/components/schemas/ResultStatus"
+                evidence:
+                  type: object
+                  description: ログ/スクショ/リンク
+                bug_links:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      title:
+                        type: string
+      responses:
+        "201":
+          description: 結果記録成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestResult"
+
+  /test-runs/{runId}/import-ci-results:
+    post:
+      tags: [test-runs]
+      summary: CI結果取り込み (JUnit XML等)
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: JUnit XML file
+      responses:
+        "200":
+          description: 取り込み成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported_count:
+                    type: integer
+                  failed_count:
+                    type: integer
+                  details:
+                    type: array
+                    items:
+                      type: object
+
+  # ============================================
+  # Approvals
+  # ============================================
+  /approvals:
+    post:
+      tags: [approvals]
+      summary: 承認/差戻し
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [object_type, object_id, decision]
+              properties:
+                object_type:
+                  $ref: "#/components/schemas/ApprovalObjectType"
+                object_id:
+                  type: string
+                  format: uuid
+                step:
+                  type: integer
+                  default: 1
+                decision:
+                  $ref: "#/components/schemas/ApprovalDecision"
+                comment:
+                  type: string
+                evidence_links:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      title:
+                        type: string
+      responses:
+        "201":
+          description: 承認記録成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Approval"
+
+  # ============================================
+  # Audit Logs
+  # ============================================
+  /audit-logs:
+    get:
+      tags: [audit-logs]
+      summary: 監査ログ検索
+      parameters:
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: actor_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: event_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/AuditEventType"
+        - name: object_type
+          in: query
+          schema:
+            type: string
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: 検索結果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /audit-logs/export:
+    get:
+      tags: [audit-logs]
+      summary: 監査ログエクスポート (CSV)
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: CSVファイル
+          content:
+            text/csv:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    projectId:
+      name: project_id
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+
+  schemas:
+    RevisionStatus:
+      type: string
+      enum: [DRAFT, IN_REVIEW, APPROVED, DEPRECATED]
+
+    ReleaseStatus:
+      type: string
+      enum: [PLANNING, EXECUTING, GATE_CHECK, APPROVED_FOR_RELEASE, RELEASED]
+
+    ResultStatus:
+      type: string
+      enum: [PASS, FAIL, BLOCKED, SKIPPED]
+
+    ApprovalObjectType:
+      type: string
+      enum:
+        [
+          CASE_REVISION,
+          SCENARIO_REVISION,
+          LIST_REVISION,
+          MAPPING_REVISION,
+          WORKFLOW_REVISION,
+          RELEASE,
+          WAIVER,
+        ]
+
+    ApprovalDecision:
+      type: string
+      enum: [APPROVED, REJECTED]
+
+    WaiverTargetType:
+      type: string
+      enum: [FAIL_RESULT, UNAPPROVED_REVISION, UNEXECUTED_TEST, OTHER]
+
+    AuditEventType:
+      type: string
+      enum:
+        [
+          CREATE,
+          UPDATE,
+          DELETE,
+          APPROVE,
+          REJECT,
+          ISSUE_WAIVER,
+          CHANGE_PERMISSION,
+          CHANGE_INTEGRATION,
+        ]
+
+    TestCaseContent:
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            type: string
+        expected_result:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        environment:
+          type: string
+
+    TestCaseRevision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        case_stable_id:
+          type: string
+          format: uuid
+        rev:
+          type: integer
+        status:
+          $ref: "#/components/schemas/RevisionStatus"
+        title:
+          type: string
+        content:
+          $ref: "#/components/schemas/TestCaseContent"
+        diff:
+          type: object
+        reason:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    TestCaseWithLatestRevision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        latest_revision:
+          $ref: "#/components/schemas/TestCaseRevision"
+        revision_count:
+          type: integer
+
+    Release:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/ReleaseStatus"
+        build_ref:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ReleaseBaseline:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        release_id:
+          type: string
+          format: uuid
+        source_list_revision_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    TestRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        run_group_id:
+          type: string
+          format: uuid
+        assignee_user_id:
+          type: string
+          format: uuid
+        source_list_revision_id:
+          type: string
+          format: uuid
+        build_ref:
+          type: string
+        status:
+          type: string
+          enum: [ASSIGNED, IN_PROGRESS, COMPLETED]
+        created_at:
+          type: string
+          format: date-time
+
+    TestResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        run_item_id:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/ResultStatus"
+        evidence:
+          type: object
+        bug_links:
+          type: array
+          items:
+            type: object
+        executed_by:
+          type: string
+          format: uuid
+        executed_at:
+          type: string
+          format: date-time
+
+    Approval:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        object_type:
+          $ref: "#/components/schemas/ApprovalObjectType"
+        object_id:
+          type: string
+          format: uuid
+        step:
+          type: integer
+        decision:
+          $ref: "#/components/schemas/ApprovalDecision"
+        approver_id:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        evidence_links:
+          type: array
+          items:
+            type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    Waiver:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        release_id:
+          type: string
+          format: uuid
+        target_type:
+          $ref: "#/components/schemas/WaiverTargetType"
+        target_id:
+          type: string
+        reason:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        issuer_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_type:
+          $ref: "#/components/schemas/AuditEventType"
+        actor_id:
+          type: string
+          format: uuid
+        object_type:
+          type: string
+        object_id:
+          type: string
+        before:
+          type: object
+        after:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer

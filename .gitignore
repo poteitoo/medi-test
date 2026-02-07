@@ -12,3 +12,21 @@
 # prisma
 /generated/prisma
 dev.db
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# env files
+.env*
+!.env.example
+
+# test coverage
+coverage/
+.nyc_output/
+
+# temporary files
+*.tmp
+*.swp
+*~

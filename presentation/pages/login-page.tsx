@@ -1,69 +1,45 @@
-import type { ActionFunctionArgs } from "react-router";
-import { data, redirect } from "react-router";
-import z from "zod";
-import { LoginForm } from "~/features/auth/login-form";
-import { loginSchema } from "~/lib/schemas/auth";
+import { SignIn } from "@clerk/clerk-react";
+import { useSearchParams } from "react-router";
 
 export function meta() {
   return [
-    { title: "ログイン - Theta" },
-    { name: "description", content: "Thetaにログインする" },
+    { title: "ログイン - medi-test" },
+    { name: "description", content: "medi-testにログインする" },
   ];
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const username = String(formData.get("username") || "");
-  const password = String(formData.get("password") || "");
+/**
+ * ログイン画面
+ *
+ * Clerk の SignIn コンポーネントを使用した認証画面
+ */
+export default function LoginPage() {
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || "/";
 
-  // サーバー側バリデーション
-  const validation = loginSchema.safeParse({ username, password });
-  if (!validation.success) {
-    const errors = z.treeifyError(validation.error).properties;
-    return data(
-      {
-        errors: {
-          username: errors?.username?.errors?.[0],
-          password: errors?.password?.errors?.[0],
-        },
-      },
-      { status: 400 },
-    );
-  }
-
-  // コンソールに出力（要件通り）
-  console.log("Login attempt:", {
-    username,
-    password,
-    timestamp: new Date().toISOString(),
-  });
-
-  // ホームにリダイレクト
-  throw redirect("/");
-}
-
-export default function LoginPage({
-  actionData,
-}: {
-  actionData?: {
-    errors?: {
-      username?: string;
-      password?: string;
-    };
-  };
-}) {
   return (
-    <div className="container mx-auto flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">ログイン</h1>
-          <p className="text-muted-foreground mt-2">
-            アカウント情報を入力してください
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">medi-test</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            テスト管理システムにログイン
           </p>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <LoginForm errors={actionData?.errors} />
+        <div className="flex justify-center">
+          <SignIn
+            routing="path"
+            path="/login"
+            signUpUrl="/signup"
+            forceRedirectUrl={redirectUrl}
+            appearance={{
+              elements: {
+                rootBox: "mx-auto",
+                card: "shadow-lg",
+              },
+            }}
+          />
         </div>
       </div>
     </div>

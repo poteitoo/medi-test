@@ -1,10 +1,83 @@
+# データモデル: テストマネジメントシステム
+
+**日付**: 2026-02-05
+**仕様**: [spec.md](./spec.md)
+**調査**: [research.md](./research.md)
+
+---
+
+## 概要
+
+このドキュメントは、テストマネジメントシステムのデータモデルを定義します。Prisma ORMを使用し、PostgreSQL 14+をターゲットとします。
+
+**設計原則**:
+
+- **Immutable Revisions**: テスト資産 (Case, Scenario, List, Mapping) はリビジョン管理され、各リビジョンは不変
+- **Audit Trail**: 監査ログはappend-only、改ざん耐性を持つ
+- **Referential Integrity**: 外部キー制約で整合性を保証
+- **Soft Delete**: 削除は論理削除 (`deleted_at`)、物理削除は保持期間後のみ
+
+---
+
+## エンティティ一覧
+
+### 組織・権限
+
+1. Organization
+2. Project
+3. User
+4. RoleAssignment
+
+### 開発統合
+
+5. ExternalIntegration
+6. Requirement
+
+### テスト資産 (Versioned)
+
+7. TestCase (stable_id管理)
+8. TestCaseRevision (不変スナップショット)
+9. TestScenario (stable_id管理)
+10. TestScenarioRevision (不変スナップショット)
+11. TestScenarioItem (Scenario内のCase参照)
+12. TestScenarioList (stable_id管理)
+13. TestScenarioListRevision (不変スナップショット)
+14. TestScenarioListItem (List内のScenario参照)
+15. Mapping (stable_id管理)
+16. MappingRevision (不変スナップショット)
+17. MappingItem (Mapping内のRequirement-Test資産リンク)
+18. WorkflowDefinition (stable_id管理)
+19. WorkflowRevision (不変スナップショット)
+
+### リリース・実行
+
+20. Release
+21. ReleaseBaseline
+22. TestRunGroup
+23. TestRun
+24. TestRunItem
+25. TestResult
+
+### 承認・例外・監査
+
+26. Approval
+27. Waiver
+28. AuditLog
+
+---
+
+## Prismaスキーマ
+
+```prisma
+// prisma/schema.prisma
+
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -44,7 +117,6 @@ model Project {
   releases            Release[]
   requirements        Requirement[]
   role_assignments    RoleAssignment[]
-  external_integrations ExternalIntegration[]
 
   @@unique([organization_id, slug])
   @@index([organization_id])
@@ -68,7 +140,6 @@ model User {
   created_scenario_revisions TestScenarioRevision[]
   created_list_revisions TestScenarioListRevision[]
   created_mapping_revisions MappingRevision[]
-  created_workflow_revisions WorkflowRevision[]
   approvals             Approval[]
   waivers               Waiver[]
   assigned_test_runs    TestRun[]
@@ -631,3 +702,89 @@ model AuditLog {
   @@index([object_type, object_id])
   @@index([timestamp])
 }
+```
+
+---
+
+## 状態遷移
+
+### RevisionStatus (Case/Scenario/List/Mapping/Workflow共通)
+
+```
+DRAFT → IN_REVIEW → APPROVED → DEPRECATED
+  ↑                      ↓
+  └──────────────────────┘ (新リビジョン作成)
+```
+
+- **DRAFT**: 編集可能
+- **IN_REVIEW**: 承認申請済み、編集不可
+- **APPROVED**: 承認済み、不変 (immutable)
+- **DEPRECATED**: 非推奨 (過去のRunの根拠として残る)
+
+### ReleaseStatus
+
+```
+PLANNING → EXECUTING → GATE_CHECK → APPROVED_FOR_RELEASE → RELEASED
+```
+
+- **PLANNING**: リリース計画中 (Baseline設定)
+- **EXECUTING**: テスト実行中
+- **GATE_CHECK**: ゲート評価中
+- **APPROVED_FOR_RELEASE**: リリース承認済み (ゲート通過)
+- **RELEASED**: リリース完了
+
+### RunGroupStatus / RunStatus
+
+```
+NOT_STARTED → IN_PROGRESS → COMPLETED
+```
+
+- **NOT_STARTED**: 未開始
+- **IN_PROGRESS**: 実行中
+- **COMPLETED**: 完了
+
+---
+
+## バリデーションルール
+
+### Immutability
+
+- `TestCaseRevision`, `TestScenarioRevision`, `TestScenarioListRevision`, `MappingRevision`, `WorkflowRevision`: `status = APPROVED` のレコードは更新禁止 (アプリケーション層で保証)
+- `AuditLog`: INSERTのみ許可、UPDATE/DELETE禁止 (DB trigger or アプリケーション層で保証)
+
+### Referential Integrity
+
+- `TestRunItem.case_revision_id`: 削除不可 (ON DELETE RESTRICT)
+- `Approval.object_id`: オブジェクト削除時にカスケード削除
+
+### Business Rules
+
+- `TestRun.assignee_user_id`: 必須 (1名のみ)
+- `Waiver.expires_at`: 未来の日時必須
+- `TestCaseRevision.rev`: case_stable_id単位で連番 (1, 2, 3...)
+
+---
+
+## インデックス戦略
+
+### 高頻度クエリ
+
+- `TestCaseRevision`: `case_stable_id`, `status`, `created_by`
+- `Approval`: `object_type + object_id`, `approver_id`, `timestamp`
+- `AuditLog`: `actor_id`, `object_type + object_id`, `timestamp`
+- `TestResult`: `run_item_id`, `status`, `executed_at`
+
+### 複合インデックス
+
+- `Requirement`: `(project_id, source, external_id)` UNIQUE
+- `TestRunItem`: `(run_id, order)` UNIQUE
+
+---
+
+## 次のステップ
+
+このデータモデルを基に、以下を実施します:
+
+1. **Prismaマイグレーション作成**: `prisma/schema.prisma` に反映
+2. **API Contracts生成**: OpenAPI仕様書を `contracts/` に配置
+3. **Quickstart作成**: 開発環境セットアップ手順を `quickstart.md` に記載
