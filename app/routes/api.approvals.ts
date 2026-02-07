@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { data } from "react-router";
 import { Effect, Layer } from "effect";
-import { PrismaLayer } from "~/../../shared/db/layers/prisma-layer";
+import { PrismaLayer } from "@shared/db/layers/prisma-layer";
 import { TestCaseManagementLayer } from "~/features/test-case-management/infrastructure/layers/test-case-layer";
 import { PrismaApprovalService } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
 import { approveRevision } from "~/features/approval-workflow/application/usecases/approve-revision";

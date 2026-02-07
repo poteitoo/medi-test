@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "~/../../shared/db/layers/prisma-layer";
+import { PrismaService } from "@shared/db/layers/prisma-layer";
 import { TestScenarioListRepository } from "../../application/ports/test-scenario-list-repository";
 import { TestScenarioList } from "../../domain/models/test-scenario-list";
 import {

@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "~/../../shared/db/layers/prisma-layer";
+import { PrismaService } from "@shared/db/layers/prisma-layer";
 import {
   OrganizationRepository,
   OrganizationNotFoundError,

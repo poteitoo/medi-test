@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Effect } from "effect";
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import { TestCaseRepository } from "~/features/test-case-management/application/ports/test-case-repository";
 import { PrismaTestCaseRepository } from "~/features/test-case-management/infrastructure/adapters/prisma-test-case-repository";
 import { TestCaseContent } from "~/features/test-case-management/domain/models/test-case-content";
-import { PrismaLayer } from "~/../../shared/db/layers/prisma-layer";
+import { PrismaLayer } from "@shared/db/layers/prisma-layer";
+import { prisma as sharedPrisma } from "@shared/db/client";
 
 /**
  * Integration tests for PrismaTestCaseRepository
@@ -16,7 +17,7 @@ describe("PrismaTestCaseRepository Integration", () => {
   let testProjectId: string;
 
   beforeEach(async () => {
-    prisma = new PrismaClient();
+    prisma = sharedPrisma;
 
     // Create test project
     const org = await prisma.organization.create({
