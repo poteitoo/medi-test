@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import {
   OrganizationRepository,
   OrganizationNotFoundError,
@@ -15,7 +15,7 @@ import { Organization } from "../../domain/models/organization";
 export const PrismaOrganizationRepository = Layer.effect(
   OrganizationRepository,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (id: string) =>

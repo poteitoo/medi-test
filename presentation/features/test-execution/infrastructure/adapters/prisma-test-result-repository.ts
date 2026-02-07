@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import { TestResultRepository } from "../../application/ports/test-result-repository";
 import { TestResult } from "../../domain/models/test-result";
 import type { ResultStatus } from "../../domain/models/result-status";
@@ -10,7 +10,7 @@ import type { ResultStatus } from "../../domain/models/result-status";
 export const PrismaTestResultRepository = Layer.effect(
   TestResultRepository,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       create: (input) =>

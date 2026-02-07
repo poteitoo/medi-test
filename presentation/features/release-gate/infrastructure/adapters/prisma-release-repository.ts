@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import { ReleaseRepository } from "../../application/ports/release-repository";
 import { Release } from "../../domain/models/release";
 import { ReleaseBaseline } from "../../domain/models/release-baseline";
@@ -12,7 +12,7 @@ import { ReleaseNotFoundError } from "../../domain/errors/release-errors";
 export const PrismaReleaseRepository = Layer.effect(
   ReleaseRepository,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (releaseId: string) =>

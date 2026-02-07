@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, FolderOpen } from "lucide-react";
+import { Building, Check, ChevronsUpDown, FolderKanban } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -17,27 +17,43 @@ import {
 import { cn } from "~/lib/utils";
 
 /**
+ * 組織データ型
+ */
+type OrganizationData = {
+  id: string;
+  name: string;
+  slug: string;
+  projects: ProjectData[];
+};
+
+/**
+ * プロジェクトデータ型
+ */
+type ProjectData = {
+  id: string;
+  name: string;
+  slug: string;
+  organizationId: string;
+};
+
+/**
  * プロジェクト選択コンポーネントのProps
  */
 type ProjectSelectorProps = {
   /**
-   * 選択可能なプロジェクト一覧
+   * 組織とプロジェクト一覧
    */
-  projects: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
+  organizations: OrganizationData[];
 
   /**
    * 現在選択されているプロジェクトID
    */
-  selectedProjectId?: string;
+  currentProjectId?: string;
 
   /**
    * プロジェクトが選択されたときのコールバック
    */
-  onProjectSelect: (projectId: string) => void;
+  onSelectProject: (projectId: string) => void;
 
   /**
    * コンポーネントの無効化状態
@@ -48,23 +64,38 @@ type ProjectSelectorProps = {
    * プレースホルダーテキスト
    */
   placeholder?: string;
+
+  /**
+   * ローディング状態
+   */
+  loading?: boolean;
 };
 
 /**
  * プロジェクト選択コンポーネント
  *
- * ドロップダウンでプロジェクトを選択できるUI
+ * 組織ごとにグループ化されたプロジェクトを選択できるドロップダウンUI
+ * shadcn/ui のCommandコンポーネントを使用
  */
 export function ProjectSelector({
-  projects,
-  selectedProjectId,
-  onProjectSelect,
+  organizations,
+  currentProjectId,
+  onSelectProject,
   disabled = false,
   placeholder = "プロジェクトを選択",
+  loading = false,
 }: ProjectSelectorProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+  // 現在選択されているプロジェクトを検索
+  const selectedProject = organizations
+    .flatMap((org) => org.projects)
+    .find((project) => project.id === currentProjectId);
+
+  // 組織情報を取得
+  const selectedOrganization = organizations.find((org) =>
+    org.projects.some((p) => p.id === currentProjectId),
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -73,13 +104,17 @@ export function ProjectSelector({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          disabled={disabled}
+          disabled={disabled || loading}
           className="w-[300px] justify-between"
         >
           <div className="flex items-center gap-2">
-            <FolderOpen className="h-4 w-4 shrink-0 opacity-50" />
+            <FolderKanban className="h-4 w-4 shrink-0 opacity-50" />
             <span className="truncate">
-              {selectedProject ? selectedProject.name : placeholder}
+              {loading
+                ? "読み込み中..."
+                : selectedProject
+                  ? selectedProject.name
+                  : placeholder}
             </span>
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -90,33 +125,49 @@ export function ProjectSelector({
           <CommandInput placeholder="プロジェクトを検索..." />
           <CommandList>
             <CommandEmpty>プロジェクトが見つかりません</CommandEmpty>
-            <CommandGroup>
-              {projects.map((project) => (
-                <CommandItem
-                  key={project.id}
-                  value={project.id}
-                  onSelect={() => {
-                    onProjectSelect(project.id);
-                    setOpen(false);
-                  }}
+            {organizations.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                プロジェクトがありません
+              </div>
+            ) : (
+              organizations.map((organization) => (
+                <CommandGroup
+                  key={organization.id}
+                  heading={
+                    <div className="flex items-center gap-2">
+                      <Building className="h-3 w-3" />
+                      <span>{organization.name}</span>
+                    </div>
+                  }
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedProjectId === project.id
-                        ? "opacity-100"
-                        : "opacity-0",
-                    )}
-                  />
-                  <div className="flex flex-col">
-                    <span className="font-medium">{project.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {project.slug}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                  {organization.projects.map((project) => (
+                    <CommandItem
+                      key={project.id}
+                      value={`${organization.name} ${project.name} ${project.slug}`}
+                      onSelect={() => {
+                        onSelectProject(project.id);
+                        setOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          currentProjectId === project.id
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{project.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {project.slug}
+                        </span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              ))
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

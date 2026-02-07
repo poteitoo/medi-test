@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import { WaiverService } from "../../application/ports/waiver-service";
 import { Waiver } from "../../domain/models/waiver";
 import type { WaiverTargetType } from "../../domain/models/waiver";
@@ -15,7 +15,7 @@ import {
 export const PrismaWaiverService = Layer.effect(
   WaiverService,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (waiverId: string) =>

@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import type { GateEvaluationService } from "../../application/ports/gate-evaluation-service";
 import { GateEvaluationService as GateEvaluationServiceTag } from "../../application/ports/gate-evaluation-service";
 import type { GateCondition } from "../../domain/models/gate-condition";
@@ -14,7 +14,7 @@ import { GateViolation } from "../../domain/models/gate-violation";
 export const GateEvaluationServiceLive = Layer.effect(
   GateEvaluationServiceTag,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     const calculateCoverage = (releaseId: string) =>
       Effect.gen(function* () {

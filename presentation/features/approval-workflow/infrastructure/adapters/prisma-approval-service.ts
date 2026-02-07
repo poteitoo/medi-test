@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import {
   ApprovalService,
   ApprovalNotFoundError,
@@ -16,7 +16,7 @@ import {
 export const PrismaApprovalService = Layer.effect(
   ApprovalService,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (approvalId: string) =>

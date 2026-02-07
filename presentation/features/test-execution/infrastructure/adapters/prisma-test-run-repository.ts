@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import { TestRunRepository } from "../../application/ports/test-run-repository";
 import { TestRun } from "../../domain/models/test-run";
 import { TestRunItem } from "../../domain/models/test-run-item";
@@ -12,7 +12,7 @@ import { TestRunNotFoundError } from "../../domain/errors/test-run-errors";
 export const PrismaTestRunRepository = Layer.effect(
   TestRunRepository,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (runId: string) =>

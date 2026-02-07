@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import { PrismaService } from "@shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 import { TestScenarioListRepository } from "../../application/ports/test-scenario-list-repository";
 import { TestScenarioList } from "../../domain/models/test-scenario-list";
 import {
@@ -19,7 +19,7 @@ import {
 export const PrismaTestScenarioListRepository = Layer.effect(
   TestScenarioListRepository,
   Effect.gen(function* () {
-    const prisma = yield* PrismaService;
+    const prisma = yield* Database;
 
     return {
       findById: (listId: string) =>

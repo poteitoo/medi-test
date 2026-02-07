@@ -38,39 +38,39 @@
 
 ### Authentication & Authorization
 
-- [ ] [T-101] [P1] [Foundation] Clerk Auth設定・初期化 - `shared/auth/infrastructure/clerk-auth-adapter.ts`
-- [ ] [T-102] [P1] [Foundation] AuthService Port定義 (Effect Tag) - `shared/auth/application/ports/auth-service.ts`
-- [ ] [T-103] [P1] [Foundation] User domain model定義 - `shared/auth/domain/models/user.ts`
-- [ ] [T-104] [P1] [Foundation] RoleAssignment domain model定義 - `shared/auth/domain/models/role-assignment.ts`
-- [ ] [T-105] [P1] [Foundation] RBAC Service Port定義 - `shared/auth/application/ports/rbac-service.ts`
-- [ ] [T-106] [P1] [Foundation] RBAC Service実装 (Layer) - `shared/auth/infrastructure/rbac-adapter.ts`
-- [ ] [T-107] [P1] [Foundation] React Router loader認証ミドルウェア実装 - `shared/auth/ui/middleware/auth-loader.ts`
-- [ ] [T-108] [P1] [Foundation] ログイン画面実装 - `presentation/pages/login-page.tsx`
-- [ ] [T-109] [P1] [Foundation] ログアウト機能実装 - `shared/auth/application/usecases/logout.ts`
+- [x] [T-101] [P1] [Foundation] Clerk Auth設定・初期化 - `shared/auth/infrastructure/clerk-auth-adapter.ts`
+- [x] [T-102] [P1] [Foundation] AuthService Port定義 (Effect Tag) - `shared/auth/application/ports/auth-service.ts`
+- [x] [T-103] [P1] [Foundation] User domain model定義 - `shared/auth/domain/models/user.ts`
+- [x] [T-104] [P1] [Foundation] RoleAssignment domain model定義 - `shared/auth/domain/models/role-assignment.ts`
+- [x] [T-105] [P1] [Foundation] RBAC Service Port定義 - `shared/auth/application/ports/rbac-service.ts`
+- [x] [T-106] [P1] [Foundation] RBAC Service実装 (Layer) - `shared/auth/infrastructure/rbac-adapter.ts`
+- [x] [T-107] [P1] [Foundation] React Router loader認証ミドルウェア実装 - `shared/auth/ui/middleware/auth-loader.ts`
+- [x] [T-108] [P1] [Foundation] ログイン画面実装 - `presentation/pages/login-page.tsx`
+- [x] [T-109] [P1] [Foundation] ログアウト機能実装 - `shared/auth/application/usecases/logout.ts`
 
 ### Database Infrastructure
 
-- [ ] [T-110] [P1] [Foundation] PrismaClient接続管理 - `shared/db/client.ts`
-- [ ] [T-111] [P1] [Foundation] Database Layer (Effect) 提供 - `shared/db/layers/prisma-layer.ts`
-- [ ] [T-112] [P1] [Foundation] トランザクション管理ユーティリティ - `shared/db/transaction.ts`
+- [x] [T-110] [P1] [Foundation] PrismaClient接続管理 - `shared/db/client.ts`
+- [x] [T-111] [P1] [Foundation] Database Layer (Effect) 提供 - `shared/db/layers/prisma-layer.ts`
+- [x] [T-112] [P1] [Foundation] トランザクション管理ユーティリティ - `shared/db/transaction.ts`
 
 ### Organization & Project Management
 
-- [ ] [T-113] [P1] [Foundation] Organization domain model定義 - `presentation/features/organization/domain/models/organization.ts`
-- [ ] [T-114] [P1] [Foundation] Project domain model定義 - `presentation/features/project/domain/models/project.ts`
-- [ ] [T-115] [P1] [Foundation] OrganizationRepository Port定義 - `presentation/features/organization/application/ports/organization-repository.ts`
-- [ ] [T-116] [P1] [Foundation] ProjectRepository Port定義 - `presentation/features/project/application/ports/project-repository.ts`
-- [ ] [T-117] [P1] [Foundation] Prisma OrganizationRepository実装 - `presentation/features/organization/infrastructure/adapters/prisma-organization-repository.ts`
-- [ ] [T-118] [P1] [Foundation] Prisma ProjectRepository実装 - `presentation/features/project/infrastructure/adapters/prisma-project-repository.ts`
-- [ ] [T-119] [P1] [Foundation] プロジェクト選択UI実装 - `presentation/features/project/ui/components/project-selector.tsx`
+- [x] [T-113] [P1] [Foundation] Organization domain model定義 - `presentation/features/organization/domain/models/organization.ts`
+- [x] [T-114] [P1] [Foundation] Project domain model定義 - `presentation/features/project/domain/models/project.ts`
+- [x] [T-115] [P1] [Foundation] OrganizationRepository Port定義 - `presentation/features/organization/application/ports/organization-repository.ts`
+- [x] [T-116] [P1] [Foundation] ProjectRepository Port定義 - `presentation/features/project/application/ports/project-repository.ts`
+- [x] [T-117] [P1] [Foundation] Prisma OrganizationRepository実装 - `presentation/features/organization/infrastructure/adapters/prisma-organization-repository.ts`
+- [x] [T-118] [P1] [Foundation] Prisma ProjectRepository実装 - `presentation/features/project/infrastructure/adapters/prisma-project-repository.ts`
+- [x] [T-119] [P1] [Foundation] プロジェクト選択UI実装 - `presentation/features/project/ui/components/project-selector.tsx`
 
 ### Shared UI Components
 
-- [ ] [T-120] [P1] [Foundation] Zod共通バリデーションスキーマ定義 - `presentation/lib/schemas/common.ts`
-- [ ] [T-121] [P1] [Foundation] ページネーションコンポーネント - `presentation/components/ui/pagination.tsx`
-- [ ] [T-122] [P1] [Foundation] データテーブルコンポーネント - `presentation/components/ui/data-table.tsx`
-- [ ] [T-123] [P1] [Foundation] ステータスバッジコンポーネント - `presentation/components/ui/status-badge.tsx`
-- [ ] [T-124] [P1] [Foundation] 日付フォーマットユーティリティ - `presentation/lib/utils/date.ts`
+- [x] [T-120] [P1] [Foundation] Zod共通バリデーションスキーマ定義 - `presentation/lib/schemas/common.ts`
+- [x] [T-121] [P1] [Foundation] ページネーションコンポーネント - `presentation/components/ui/pagination.tsx`
+- [x] [T-122] [P1] [Foundation] データテーブルコンポーネント - `presentation/components/ui/data-table.tsx`
+- [x] [T-123] [P1] [Foundation] ステータスバッジコンポーネント - `presentation/components/ui/status-badge.tsx`
+- [x] [T-124] [P1] [Foundation] 日付フォーマットユーティリティ - `presentation/lib/utils/date.ts`
 
 ---
 
