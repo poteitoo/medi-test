@@ -1,5 +1,5 @@
 import { Context, Effect } from "effect";
-import type { RoleType, RoleAssignment } from "~/shared/auth/domain/models/role-assignment";
+import type { RoleType, RoleAssignment } from "@shared/auth/domain/models/role-assignment";
 
 /**
  * Permission Errors

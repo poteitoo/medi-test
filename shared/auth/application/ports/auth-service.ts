@@ -1,5 +1,5 @@
 import { Context, Effect } from "effect";
-import type { User } from "~/shared/auth/domain/models/user";
+import type { User } from "@shared/auth/domain/models/user";
 
 /**
  * Authentication Errors
