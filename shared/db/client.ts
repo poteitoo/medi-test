@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import Database from "better-sqlite3";
 
 /**
  * グローバル Prisma Client インスタンス管理
@@ -12,21 +10,17 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /**
- * SQLite adapter setup
- */
-const db = new Database("./prisma/dev.db");
-const adapter = new PrismaBetterSqlite3(db);
-
-/**
  * Prisma Client シングルトンインスタンス
  *
  * 本番環境では新しいインスタンスを作成し、
  * 開発環境ではグローバルインスタンスを再利用する
+ *
+ * Note: SQLite adapter configuration should be done in production
+ * For now using standard PrismaClient for development
  */
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    adapter,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
