@@ -21,10 +21,12 @@ export const PrismaTestResultRepository = Layer.effect(
                 data: {
                   run_item_id: input.runItemId,
                   status: input.status,
-                  evidence: input.evidence ?? null,
+                  evidence: input.evidence
+                    ? (input.evidence as unknown as object)
+                    : undefined,
                   bug_links: input.bugLinks
                     ? (input.bugLinks as unknown as object)
-                    : null,
+                    : undefined,
                   executed_by: input.executedBy,
                 },
               }),
@@ -44,7 +46,7 @@ export const PrismaTestResultRepository = Layer.effect(
                 })
               : undefined,
             bugLinks: testResult.bug_links
-              ? (testResult.bug_links as readonly {
+              ? (testResult.bug_links as unknown as readonly {
                   url: string;
                   title: string;
                   severity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
@@ -81,7 +83,7 @@ export const PrismaTestResultRepository = Layer.effect(
                     })
                   : undefined,
                 bugLinks: r.bug_links
-                  ? (r.bug_links as readonly {
+                  ? (r.bug_links as unknown as readonly {
                       url: string;
                       title: string;
                       severity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
@@ -121,7 +123,7 @@ export const PrismaTestResultRepository = Layer.effect(
                 })
               : undefined,
             bugLinks: result.bug_links
-              ? (result.bug_links as readonly {
+              ? (result.bug_links as unknown as readonly {
                   url: string;
                   title: string;
                   severity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
@@ -162,7 +164,7 @@ export const PrismaTestResultRepository = Layer.effect(
                     })
                   : undefined,
                 bugLinks: r.bug_links
-                  ? (r.bug_links as readonly {
+                  ? (r.bug_links as unknown as readonly {
                       url: string;
                       title: string;
                       severity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";

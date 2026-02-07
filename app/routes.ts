@@ -11,6 +11,7 @@ export default [
   route("test-scenarios", "../presentation/pages/test-scenarios-page.tsx"),
   route("releases", "../presentation/pages/releases-page.tsx"),
   route("releases/:releaseId", "../presentation/pages/release-detail-page.tsx"),
+  route("test-runs/:runId", "../presentation/pages/test-run-detail-page.tsx"),
 
   // API Routes
   route("api/test-cases", "./routes/api.test-cases.ts"),
@@ -37,6 +38,7 @@ export default [
     "./routes/api.releases.$releaseId.waivers.ts",
   ),
   route("api/test-runs", "./routes/api.test-runs.ts"),
+  route("api/test-runs/:runId", "./routes/api.test-runs.$runId.ts"),
   route(
     "api/test-runs/:runId/items/:itemId/results",
     "./routes/api.test-runs.$runId.items.$itemId.results.ts",
