@@ -36,4 +36,9 @@ export default [
     "api/releases/:releaseId/waivers",
     "./routes/api.releases.$releaseId.waivers.ts",
   ),
+  route("api/test-runs", "./routes/api.test-runs.ts"),
+  route(
+    "api/test-runs/:runId/items/:itemId/results",
+    "./routes/api.test-runs.$runId.items.$itemId.results.ts",
+  ),
 ] satisfies RouteConfig;
