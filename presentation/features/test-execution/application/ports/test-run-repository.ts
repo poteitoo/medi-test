@@ -53,5 +53,12 @@ export class TestRunRepository extends Context.Tag("TestRunRepository")<
     readonly findByReleaseId: (
       releaseId: string,
     ) => Effect.Effect<readonly TestRun[], Error>;
+
+    /**
+     * ラングループIDに紐づくテストランを取得
+     */
+    readonly findByRunGroupId: (
+      runGroupId: string,
+    ) => Effect.Effect<readonly TestRun[], Error>;
   }
 >() {}

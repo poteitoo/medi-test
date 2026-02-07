@@ -11,6 +11,7 @@ export default [
   route("test-scenarios", "../presentation/pages/test-scenarios-page.tsx"),
   route("releases", "../presentation/pages/releases-page.tsx"),
   route("releases/:releaseId", "../presentation/pages/release-detail-page.tsx"),
+  route("test-runs", "../presentation/pages/test-runs-page.tsx"),
   route("test-runs/:runId", "../presentation/pages/test-run-detail-page.tsx"),
 
   // API Routes

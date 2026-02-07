@@ -276,6 +276,33 @@ export const PrismaTestRunRepository = Layer.effect(
               }),
           );
         }),
+
+      findByRunGroupId: (runGroupId: string) =>
+        Effect.gen(function* () {
+          const testRuns = yield* Effect.tryPromise({
+            try: () =>
+              prisma.testRun.findMany({
+                where: { run_group_id: runGroupId },
+                orderBy: { created_at: "desc" },
+              }),
+            catch: (error) =>
+              new Error(`テストラン一覧の取得に失敗しました: ${String(error)}`),
+          });
+
+          return testRuns.map(
+            (tr) =>
+              new TestRun({
+                id: tr.id,
+                runGroupId: tr.run_group_id,
+                assigneeUserId: tr.assignee_user_id,
+                sourceListRevisionId: tr.source_list_revision_id,
+                buildRef: tr.build_ref ?? undefined,
+                status: tr.status as RunStatus,
+                createdAt: tr.created_at,
+                updatedAt: tr.updated_at,
+              }),
+          );
+        }),
     };
   }),
 );
