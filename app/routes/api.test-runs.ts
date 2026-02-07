@@ -1,21 +1,11 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { TestExecutionLayer } from "~/features/test-execution/infrastructure/layers/test-execution-layer";
 import { createTestRun } from "~/features/test-execution/application/usecases/create-test-run";
 import { TestRunRepository } from "~/features/test-execution/application/ports/test-run-repository";
 import { TestResultRepository } from "~/features/test-execution/application/ports/test-result-repository";
-import { z } from "zod";
-
-/**
- * テストラン作成スキーマ（簡易版）
- */
-const createTestRunSchema = z.object({
-  runGroupId: z.string().uuid(),
-  assigneeUserId: z.string().uuid(),
-  sourceListRevisionId: z.string().uuid(),
-  buildRef: z.string().optional(),
-});
+import { createTestRunSchema } from "~/lib/schemas/test-run";
 
 /**
  * GET /api/test-runs
