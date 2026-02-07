@@ -4,7 +4,7 @@ import { Effect, Layer } from "effect";
 import { TestExecutionLayer } from "~/features/test-execution/infrastructure/layers/test-execution-layer";
 import { TestRunRepository } from "~/features/test-execution/application/ports/test-run-repository";
 import { TestResultRepository } from "~/features/test-execution/application/ports/test-result-repository";
-import { PrismaService, PrismaLayer } from "@shared/db/layers/prisma-layer";
+import { Database, PrismaLayer } from "~/shared/db/layers/prisma-layer";
 
 /**
  * GET /api/test-runs/:runId
@@ -22,7 +22,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     const program = Effect.gen(function* () {
       const testRunRepo = yield* TestRunRepository;
       const testResultRepo = yield* TestResultRepository;
-      const prisma = yield* PrismaService;
+      const prisma = yield* Database;
 
       // テストランとアイテムを取得
       const { run, items } = yield* testRunRepo.findByIdWithItems(runId);

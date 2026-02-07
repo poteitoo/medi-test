@@ -1,18 +1,29 @@
 import { Data } from "effect";
 
 /**
- * ロールタイプ (Prisma enumに対応)
+ * Role Type
+ *
+ * システムで利用可能なロール一覧
  */
-export type RoleType =
-  | "ADMIN"
-  | "QA_MANAGER"
-  | "QA_ENGINEER"
-  | "DEVELOPER"
-  | "PM_PO"
-  | "AUDITOR";
+export const RoleType = {
+  ADMIN: "ADMIN",
+  QA_MANAGER: "QA_MANAGER",
+  QA_ENGINEER: "QA_ENGINEER",
+  DEVELOPER: "DEVELOPER",
+  PM_PO: "PM_PO",
+  AUDITOR: "AUDITOR",
+} as const;
+
+export type RoleType = (typeof RoleType)[keyof typeof RoleType];
 
 /**
- * ロール割り当てドメインモデル
+ * Role Assignment Domain Model
+ *
+ * ユーザーとロールの紐付けを表すドメインモデル
+ *
+ * @remarks
+ * - Organization レベルまたは Project レベルでロールを割り当て
+ * - 階層的な権限管理をサポート
  */
 export class RoleAssignment extends Data.Class<{
   readonly id: string;
@@ -21,60 +32,91 @@ export class RoleAssignment extends Data.Class<{
   readonly projectId?: string;
   readonly role: RoleType;
   readonly createdAt: Date;
-}> {}
+}> {
+  /**
+   * Organization レベルのロール割り当てか
+   */
+  get isOrganizationLevel(): boolean {
+    return !!this.organizationId && !this.projectId;
+  }
+
+  /**
+   * Project レベルのロール割り当てか
+   */
+  get isProjectLevel(): boolean {
+    return !!this.projectId;
+  }
+
+  /**
+   * 管理者権限を持つか
+   */
+  get isAdmin(): boolean {
+    return this.role === RoleType.ADMIN;
+  }
+
+  /**
+   * QA Manager権限を持つか
+   */
+  get isQAManager(): boolean {
+    return this.role === RoleType.QA_MANAGER;
+  }
+
+  /**
+   * ロールの表示名を取得
+   */
+  get roleDisplayName(): string {
+    const displayNames: Record<RoleType, string> = {
+      [RoleType.ADMIN]: "管理者",
+      [RoleType.QA_MANAGER]: "QAマネージャー",
+      [RoleType.QA_ENGINEER]: "QAエンジニア",
+      [RoleType.DEVELOPER]: "開発者",
+      [RoleType.PM_PO]: "PM/PO",
+      [RoleType.AUDITOR]: "監査人",
+    };
+    return displayNames[this.role];
+  }
+
+  /**
+   * スコープの表示名を取得
+   */
+  get scopeDisplayName(): string {
+    if (this.isOrganizationLevel) {
+      return "組織全体";
+    }
+    if (this.isProjectLevel) {
+      return `プロジェクト (${this.projectId})`;
+    }
+    return "未定義";
+  }
+}
 
 /**
- * ロール割り当て作成入力
+ * RoleAssignment作成用の入力型
  */
-export class CreateRoleAssignmentInput extends Data.Class<{
+export type CreateRoleAssignmentInput = {
   readonly userId: string;
+  readonly role: RoleType;
   readonly organizationId?: string;
   readonly projectId?: string;
-  readonly role: RoleType;
-}> {}
-
-/**
- * ロールチェック用ヘルパー
- */
-export const hasRole = (
-  assignments: readonly RoleAssignment[],
-  role: RoleType,
-  scope?: { organizationId?: string; projectId?: string },
-): boolean => {
-  return assignments.some((assignment) => {
-    const roleMatches = assignment.role === role;
-    const scopeMatches =
-      (!scope?.organizationId ||
-        assignment.organizationId === scope.organizationId) &&
-      (!scope?.projectId || assignment.projectId === scope.projectId);
-    return roleMatches && scopeMatches;
-  });
 };
 
 /**
- * 複数ロールのいずれかを持っているかチェック
+ * ロール権限レベル
+ *
+ * ロールの階層関係を定義
  */
-export const hasAnyRole = (
-  assignments: readonly RoleAssignment[],
-  roles: readonly RoleType[],
-  scope?: { organizationId?: string; projectId?: string },
-): boolean => {
-  return roles.some((role) => hasRole(assignments, role, scope));
+export const RoleHierarchy: Record<RoleType, number> = {
+  [RoleType.ADMIN]: 100,
+  [RoleType.QA_MANAGER]: 80,
+  [RoleType.QA_ENGINEER]: 60,
+  [RoleType.DEVELOPER]: 40,
+  [RoleType.PM_PO]: 40,
+  [RoleType.AUDITOR]: 20,
 };
 
 /**
- * 管理者権限チェック
+ * ロールAがロールBより上位か判定
  */
-export const isAdmin = (assignments: readonly RoleAssignment[]): boolean => {
-  return hasRole(assignments, "ADMIN");
-};
-
-/**
- * QAマネージャー権限チェック
- */
-export const isQAManager = (
-  assignments: readonly RoleAssignment[],
-  scope?: { organizationId?: string; projectId?: string },
-): boolean => {
-  return hasRole(assignments, "QA_MANAGER", scope);
-};
+export function isRoleHigherThan(roleA: RoleType, roleB: RoleType): boolean {
+  return RoleHierarchy[roleA] > RoleHierarchy[roleB];
+}

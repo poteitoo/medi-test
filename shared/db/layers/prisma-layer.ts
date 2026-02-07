@@ -1,39 +1,65 @@
-import { Context, Effect, Layer } from "effect";
-import { PrismaClient } from "@prisma/client";
-import { prisma } from "../client";
+import { Layer, Context } from "effect";
+import type { PrismaClient } from "@prisma/client";
+import { getPrismaClient } from "~/shared/db/client";
 
 /**
- * Prisma Client サービスタグ
+ * Database Service Tag
  *
- * Effect プログラム内で PrismaClient を依存性として要求するための Tag
- */
-export class PrismaService extends Context.Tag("PrismaService")<
-  PrismaService,
-  PrismaClient
->() {}
-
-/**
- * Prisma Client Layer
- *
- * シングルトン PrismaClient インスタンスを Effect コンテキストに提供する Layer
+ * Effect TS のContext.Tagを使用してPrismaClientを提供
  *
  * @example
+ * ```typescript
+ * import { Effect } from "effect";
+ * import { Database } from "~/shared/db/layers/prisma-layer";
+ *
  * const program = Effect.gen(function* () {
- *   const db = yield* PrismaService;
- *   const users = await db.user.findMany();
+ *   const db = yield* Database;
+ *   const users = yield* Effect.tryPromise(() => db.user.findMany());
  *   return users;
- * }).pipe(Effect.provide(PrismaLayer));
+ * });
+ * ```
  */
-export const PrismaLayer = Layer.succeed(PrismaService, prisma);
+export class Database extends Context.Tag("Database")<Database, PrismaClient>() {}
 
 /**
- * Prisma Client を取得する Effect
+ * Prisma Layer (Live)
+ *
+ * 本番用のPrismaClient実装を提供するLayer
  *
  * @example
+ * ```typescript
  * const program = Effect.gen(function* () {
- *   const db = yield* getPrismaClient();
- *   const users = await db.user.findMany();
- *   return users;
+ *   const db = yield* Database;
+ *   return yield* Effect.tryPromise(() => db.user.findMany());
  * }).pipe(Effect.provide(PrismaLayer));
+ *
+ * const result = await Effect.runPromise(program);
+ * ```
  */
-export const getPrismaClient = () => PrismaService;
+export const PrismaLayer = Layer.succeed(Database, getPrismaClient());
+
+/**
+ * Test用のPrisma Layer
+ *
+ * テスト用にモックPrismaClientを注入可能
+ *
+ * @param mockClient - モックPrismaClient
+ * @returns Test Layer
+ *
+ * @example
+ * ```typescript
+ * const mockPrisma = {
+ *   user: {
+ *     findMany: vi.fn().mockResolvedValue([]),
+ *   },
+ * } as unknown as PrismaClient;
+ *
+ * const TestLayer = createTestPrismaLayer(mockPrisma);
+ *
+ * const program = myUseCase().pipe(Effect.provide(TestLayer));
+ * await Effect.runPromise(program);
+ * ```
+ */
+export function createTestPrismaLayer(mockClient: PrismaClient) {
+  return Layer.succeed(Database, mockClient);
+}

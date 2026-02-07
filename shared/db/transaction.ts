@@ -1,6 +1,34 @@
 import { Effect } from "effect";
 import type { PrismaClient } from "@prisma/client";
-import { PrismaService } from "./layers/prisma-layer";
+import { Database } from "~/shared/db/layers/prisma-layer";
+
+/**
+ * Prisma Transaction Utility
+ *
+ * Effect TSでPrismaのトランザクションを安全に扱うユーティリティ
+ *
+ * @remarks
+ * - Prismaの`$transaction`をEffect.genでラップ
+ * - エラー時は自動的にロールバック
+ * - ネストしたトランザクションはサポートしない
+ *
+ * @example
+ * ```typescript
+ * import { withTransaction } from "~/shared/db/transaction";
+ *
+ * const program = withTransaction((tx) =>
+ *   Effect.gen(function* () {
+ *     const user = yield* Effect.tryPromise(() =>
+ *       tx.user.create({ data: { ... } })
+ *     );
+ *     const profile = yield* Effect.tryPromise(() =>
+ *       tx.profile.create({ data: { userId: user.id, ... } })
+ *     );
+ *     return { user, profile };
+ *   })
+ * );
+ * ```
+ */
 
 /**
  * トランザクションエラー
@@ -8,8 +36,8 @@ import { PrismaService } from "./layers/prisma-layer";
 export class TransactionError extends Error {
   readonly _tag = "TransactionError";
   constructor(
-    message: string,
-    public readonly cause?: unknown,
+    readonly message: string,
+    readonly cause?: Error,
   ) {
     super(message);
     this.name = "TransactionError";
@@ -17,99 +45,119 @@ export class TransactionError extends Error {
 }
 
 /**
- * Prisma トランザクション内で実行する処理の型
+ * トランザクション内で実行する関数の型
  */
-export type TransactionCallback<T> = (
-  tx: Omit<
-    PrismaClient,
-    "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
-  >,
-) => Promise<T>;
+export type TransactionCallback<A, E> = (
+  tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">,
+) => Effect.Effect<A, E, never>;
 
 /**
- * Prisma トランザクションを実行するヘルパー関数
+ * トランザクション内でEffect programを実行
  *
- * Effect プログラム内で Prisma のトランザクションを扱いやすくする
- *
- * @param callback トランザクション内で実行する処理
- * @returns トランザクション結果の Effect
+ * @param callback - トランザクション内で実行するEffect program
+ * @returns トランザクション結果を含むEffect
  *
  * @example
- * const program = runTransaction(async (tx) => {
- *   const user = await tx.user.create({ data: { email: "test@example.com" } });
- *   const profile = await tx.profile.create({ data: { userId: user.id } });
- *   return { user, profile };
- * });
+ * ```typescript
+ * const createUserWithProfile = withTransaction((tx) =>
+ *   Effect.gen(function* () {
+ *     const user = yield* Effect.tryPromise({
+ *       try: () => tx.user.create({ data: { email: "test@example.com" } }),
+ *       catch: (error) => new TransactionError("Failed to create user", error as Error),
+ *     });
+ *
+ *     const profile = yield* Effect.tryPromise({
+ *       try: () => tx.profile.create({ data: { userId: user.id } }),
+ *       catch: (error) => new TransactionError("Failed to create profile", error as Error),
+ *     });
+ *
+ *     return { user, profile };
+ *   })
+ * );
+ *
+ * const program = createUserWithProfile.pipe(Effect.provide(PrismaLayer));
+ * const result = await Effect.runPromise(program);
+ * ```
+ */
+export function withTransaction<A, E>(
+  callback: TransactionCallback<A, E>,
+): Effect.Effect<A, E | TransactionError, Database> {
+  return Effect.gen(function* () {
+    const prisma = yield* Database;
+
+    return yield* Effect.tryPromise({
+      try: () =>
+        prisma.$transaction(async (tx) => {
+          const program = callback(tx);
+          return await Effect.runPromise(program);
+        }),
+      catch: (error) =>
+        new TransactionError(
+          "Transaction failed",
+          error instanceof Error ? error : new Error(String(error)),
+        ),
+    });
+  });
+}
+
+/**
+ * 複数のEffect programをトランザクション内で順次実行
+ *
+ * @param programs - 実行するEffect programの配列
+ * @returns 全ての結果を含むEffect
+ *
+ * @example
+ * ```typescript
+ * const programs = [
+ *   (tx: any) => Effect.tryPromise(() => tx.user.create({ data: { ... } })),
+ *   (tx: any) => Effect.tryPromise(() => tx.profile.create({ data: { ... } })),
+ * ];
  *
  * const result = await Effect.runPromise(
- *   program.pipe(Effect.provide(PrismaLayer))
+ *   withTransactionBatch(programs).pipe(Effect.provide(PrismaLayer))
  * );
+ * ```
  */
-export const runTransaction = <T>(
-  callback: TransactionCallback<T>,
-): Effect.Effect<T, TransactionError, PrismaService> =>
-  Effect.gen(function* () {
-    const prisma = yield* PrismaService;
-
-    try {
-      const result = yield* Effect.tryPromise({
-        try: () => prisma.$transaction(callback),
-        catch: (error) =>
-          new TransactionError(
-            `トランザクション実行中にエラーが発生しました: ${String(error)}`,
-            error,
-          ),
-      });
-
-      return result;
-    } catch (error) {
-      return yield* Effect.fail(
-        new TransactionError(
-          `トランザクション実行中にエラーが発生しました: ${String(error)}`,
-          error,
-        ),
-      );
-    }
-  });
+export function withTransactionBatch<A, E>(
+  programs: readonly TransactionCallback<A, E>[],
+): Effect.Effect<readonly A[], E | TransactionError, Database> {
+  return withTransaction((tx) =>
+    Effect.forEach(programs, (program) => program(tx), {
+      concurrency: 1, // 順次実行
+    }),
+  );
+}
 
 /**
- * 複数の Effect を同じトランザクション内で実行する
+ * トランザクションのタイムアウト設定
  *
- * @param effects 実行する Effect の配列
- * @returns すべての Effect の結果を含む配列の Effect
+ * @param callback - トランザクション内で実行するEffect program
+ * @param timeoutMs - タイムアウト時間（ミリ秒）
+ * @returns タイムアウト付きのEffect
  *
  * @example
- * const createUser = (tx: PrismaClient, email: string) =>
- *   Effect.tryPromise(() => tx.user.create({ data: { email } }));
- *
- * const createProfile = (tx: PrismaClient, userId: string) =>
- *   Effect.tryPromise(() => tx.profile.create({ data: { userId } }));
- *
- * const program = runTransactionWithEffects([
- *   (tx) => createUser(tx, "test@example.com"),
- *   (tx) => createProfile(tx, "user-id"),
- * ]);
+ * ```typescript
+ * const program = withTransactionTimeout(
+ *   (tx) => Effect.gen(function* () {
+ *     // 長時間かかる処理
+ *     return yield* Effect.tryPromise(() => tx.user.findMany());
+ *   }),
+ *   5000 // 5秒でタイムアウト
+ * );
+ * ```
  */
-export const runTransactionWithEffects = <T>(
-  effects: Array<
-    (
-      tx: Omit<
-        PrismaClient,
-        | "$connect"
-        | "$disconnect"
-        | "$on"
-        | "$transaction"
-        | "$use"
-        | "$extends"
-      >,
-    ) => Effect.Effect<T, Error, never>
-  >,
-): Effect.Effect<T[], TransactionError, PrismaService> =>
-  runTransaction(async (tx) => {
-    const results: T[] = [];
-    for (const effectFn of effects) {
-      const result = await Effect.runPromise(effectFn(tx));
-      results.push(result);
-    }
-    return results;
-  });
+export function withTransactionTimeout<A, E>(
+  callback: TransactionCallback<A, E>,
+  timeoutMs: number,
+): Effect.Effect<A, E | TransactionError, Database> {
+  return withTransaction(callback).pipe(
+    Effect.timeout(timeoutMs),
+    Effect.flatMap((option) =>
+      option._tag === "Some"
+        ? Effect.succeed(option.value)
+        : Effect.fail(
+            new TransactionError(`Transaction timeout after ${timeoutMs}ms`),
+          ),
+    ),
+  );
+}
