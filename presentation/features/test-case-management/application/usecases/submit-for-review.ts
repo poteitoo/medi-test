@@ -1,6 +1,9 @@
 import { Effect } from "effect";
 import { TestCaseRepository } from "../ports/test-case-repository";
-import { isEditable, canTransitionTo } from "../../domain/models/revision-status";
+import {
+  isEditable,
+  canTransitionTo,
+} from "../../domain/models/revision-status";
 import { InvalidStatusTransitionError } from "../../domain/errors/status-errors";
 import { RevisionImmutableError } from "../../domain/errors/revision-errors";
 

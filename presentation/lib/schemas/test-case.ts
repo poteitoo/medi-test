@@ -24,9 +24,7 @@ export const testCaseContentSchema = z.object({
   /**
    * 期待結果（必須）
    */
-  expected_result: z
-    .string()
-    .min(1, { message: "期待結果を入力してください" }),
+  expected_result: z.string().min(1, { message: "期待結果を入力してください" }),
 
   /**
    * 前提条件（オプション）
@@ -71,7 +69,9 @@ export const createTestCaseSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z.string().uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: z
+    .string()
+    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
 
   /**
    * タイトル
@@ -99,7 +99,9 @@ export const createTestCaseRevisionSchema = z.object({
   /**
    * テストケースID
    */
-  caseId: z.string().uuid({ message: "有効なテストケースIDを指定してください" }),
+  caseId: z
+    .string()
+    .uuid({ message: "有効なテストケースIDを指定してください" }),
 
   /**
    * タイトル
@@ -127,7 +129,9 @@ export const updateTestCaseRevisionSchema = z.object({
   /**
    * リビジョンID
    */
-  revisionId: z.string().uuid({ message: "有効なリビジョンIDを指定してください" }),
+  revisionId: z
+    .string()
+    .uuid({ message: "有効なリビジョンIDを指定してください" }),
 
   /**
    * タイトル（オプション）
@@ -151,7 +155,9 @@ export const submitForReviewSchema = z.object({
   /**
    * リビジョンID
    */
-  revisionId: z.string().uuid({ message: "有効なリビジョンIDを指定してください" }),
+  revisionId: z
+    .string()
+    .uuid({ message: "有効なリビジョンIDを指定してください" }),
 });
 
 /**
@@ -161,7 +167,9 @@ export const searchTestCasesSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z.string().uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: z
+    .string()
+    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
 
   /**
    * ステータスフィルター（オプション）

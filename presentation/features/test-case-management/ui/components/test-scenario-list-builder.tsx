@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown, List } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  List,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -271,9 +278,7 @@ export function TestScenarioListBuilder({
       {testScenarios.length > 0 && (
         <div className="rounded-lg bg-muted p-4">
           <div className="text-sm text-muted-foreground">
-            <strong className="text-foreground">
-              {testScenarios.length}
-            </strong>{" "}
+            <strong className="text-foreground">{testScenarios.length}</strong>{" "}
             個のシナリオが含まれています
           </div>
         </div>

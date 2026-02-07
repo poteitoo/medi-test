@@ -196,9 +196,7 @@ export const PrismaTestCaseRepository = Layer.effect(
                 orderBy: { rev: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `リビジョン一覧の取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`リビジョン一覧の取得に失敗しました: ${String(error)}`),
           });
 
           return revisions.map(
@@ -415,9 +413,7 @@ export const PrismaTestCaseRepository = Layer.effect(
                 orderBy: { created_at: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `リビジョンの検索に失敗しました: ${String(error)}`,
-              ),
+              new Error(`リビジョンの検索に失敗しました: ${String(error)}`),
           });
 
           return revisions.map(

@@ -102,9 +102,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
                 },
               }),
             catch: (error) =>
-              new Error(
-                `テストシナリオの作成に失敗しました: ${String(error)}`,
-              ),
+              new Error(`テストシナリオの作成に失敗しました: ${String(error)}`),
           });
 
           return new TestScenario({
@@ -165,9 +163,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
                 include: { items: true },
               }),
             catch: (error) =>
-              new Error(
-                `最新リビジョンの取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`最新リビジョンの取得に失敗しました: ${String(error)}`),
           });
 
           if (!revision) {
@@ -210,9 +206,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
                 include: { items: true },
               }),
             catch: (error) =>
-              new Error(
-                `リビジョン一覧の取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`リビジョン一覧の取得に失敗しました: ${String(error)}`),
           });
 
           return revisions.map(

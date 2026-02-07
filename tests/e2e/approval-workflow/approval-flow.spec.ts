@@ -120,7 +120,9 @@ test.describe("Approval Workflow", () => {
       await page.goto("/test-cases/pending-case-id");
 
       // Verify approval panel is visible
-      await expect(page.locator('[data-testid="approval-panel"]')).toBeVisible();
+      await expect(
+        page.locator('[data-testid="approval-panel"]'),
+      ).toBeVisible();
       await expect(page.locator('button:has-text("承認")')).toBeEnabled();
       await expect(page.locator('button:has-text("却下")')).toBeEnabled();
     });
@@ -281,16 +283,14 @@ test.describe("Approval Workflow", () => {
       await page.click('button[role="tab"]:has-text("履歴")');
 
       // Verify multiple revision entries
-      const revisionEntries = await page.locator('[data-testid="revision-entry"]').count();
+      const revisionEntries = await page
+        .locator('[data-testid="revision-entry"]')
+        .count();
       expect(revisionEntries).toBeGreaterThan(1);
 
       // Verify each revision has status info
-      await expect(
-        page.locator('text="リビジョン 1"'),
-      ).toBeVisible();
-      await expect(
-        page.locator('text="リビジョン 2"'),
-      ).toBeVisible();
+      await expect(page.locator('text="リビジョン 1"')).toBeVisible();
+      await expect(page.locator('text="リビジョン 2"')).toBeVisible();
     });
   });
 
@@ -304,12 +304,8 @@ test.describe("Approval Workflow", () => {
       await page.goto("/test-cases/pending-case-id");
 
       // Verify approval buttons are NOT visible for QA Engineer
-      await expect(
-        page.locator('button:has-text("承認")'),
-      ).not.toBeVisible();
-      await expect(
-        page.locator('button:has-text("却下")'),
-      ).not.toBeVisible();
+      await expect(page.locator('button:has-text("承認")')).not.toBeVisible();
+      await expect(page.locator('button:has-text("却下")')).not.toBeVisible();
     });
 
     test("Developer should only have read access", async ({ page }) => {
@@ -326,7 +322,7 @@ test.describe("Approval Workflow", () => {
       await expect(page.locator('button:has-text("却下")')).not.toBeVisible();
 
       // But can view content
-      await expect(page.locator('h1')).toBeVisible();
+      await expect(page.locator("h1")).toBeVisible();
     });
   });
 
@@ -379,9 +375,7 @@ test.describe("Approval Workflow", () => {
       await page.click('button:has-text("確認"):last-of-type');
 
       // Verify toast notification
-      await expect(
-        page.locator('text="レビューに提出しました"'),
-      ).toBeVisible();
+      await expect(page.locator('text="レビューに提出しました"')).toBeVisible();
     });
 
     test("should display notification after approval", async ({ page }) => {

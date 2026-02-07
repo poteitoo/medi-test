@@ -87,9 +87,7 @@ export function TestCaseList({
               {/* ステップ数 */}
               <div className="flex items-center gap-1.5">
                 <FileText className="h-4 w-4" />
-                <span>
-                  {latestRevision.content.steps.length} ステップ
-                </span>
+                <span>{latestRevision.content.steps.length} ステップ</span>
               </div>
 
               {/* 作成者 */}

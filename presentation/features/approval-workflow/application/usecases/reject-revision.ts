@@ -57,9 +57,7 @@ export const rejectRevision = (input: RejectRevisionInput) =>
 
     // コメントが必須
     if (!input.comment || input.comment.trim().length === 0) {
-      return yield* Effect.fail(
-        new Error("却下理由のコメントが必要です"),
-      );
+      return yield* Effect.fail(new Error("却下理由のコメントが必要です"));
     }
 
     // 却下情報を作成

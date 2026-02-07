@@ -4,8 +4,15 @@ import { createTestCase } from "~/features/test-case-management/application/usec
 import { TestCaseRepository } from "~/features/test-case-management/application/ports/test-case-repository";
 import { TestCase } from "~/features/test-case-management/domain/models/test-case";
 import { TestCaseContent } from "~/features/test-case-management/domain/models/test-case-content";
-import { RevisionValidationError, RevisionCreationError, RevisionUpdateError } from "~/features/test-case-management/domain/errors/revision-errors";
-import { TestCaseNotFoundError, TestCaseRevisionNotFoundError } from "~/features/test-case-management/domain/errors/test-case-errors";
+import {
+  RevisionValidationError,
+  RevisionCreationError,
+  RevisionUpdateError,
+} from "~/features/test-case-management/domain/errors/revision-errors";
+import {
+  TestCaseNotFoundError,
+  TestCaseRevisionNotFoundError,
+} from "~/features/test-case-management/domain/errors/test-case-errors";
 import type { RevisionStatus } from "~/features/test-case-management/domain/models/revision-status";
 
 /**
@@ -21,18 +28,71 @@ const createMockRepository = () => {
   );
 
   return {
-    findById: (_caseId: string) => Effect.fail(new TestCaseNotFoundError({ message: "Not implemented", caseId: _caseId })),
+    findById: (_caseId: string) =>
+      Effect.fail(
+        new TestCaseNotFoundError({
+          message: "Not implemented",
+          caseId: _caseId,
+        }),
+      ),
     findByProjectId: (_projectId: string) => Effect.succeed([]),
-    create: (_input: { readonly projectId: string; readonly title: string; readonly content: TestCaseContent; readonly createdBy: string }) => mockCreate,
-    findRevisionById: (_revisionId: string) => Effect.fail(new TestCaseRevisionNotFoundError({ message: "Not implemented" })),
-    findLatestRevision: (_caseId: string) => Effect.fail(new TestCaseRevisionNotFoundError({ message: "Not implemented" })),
+    create: (_input: {
+      readonly projectId: string;
+      readonly title: string;
+      readonly content: TestCaseContent;
+      readonly createdBy: string;
+    }) => mockCreate,
+    findRevisionById: (_revisionId: string) =>
+      Effect.fail(
+        new TestCaseRevisionNotFoundError({ message: "Not implemented" }),
+      ),
+    findLatestRevision: (_caseId: string) =>
+      Effect.fail(
+        new TestCaseRevisionNotFoundError({ message: "Not implemented" }),
+      ),
     findAllRevisions: (_caseId: string) => Effect.succeed([]),
-    findRevisionByNumber: (_caseId: string, _revisionNumber: number) => Effect.fail(new TestCaseRevisionNotFoundError({ message: "Not implemented" })),
-    createRevision: (_input: { readonly caseId: string; readonly title: string; readonly content: TestCaseContent; readonly createdBy: string }) => Effect.fail(new RevisionCreationError({ message: "Not implemented", cause: new Error("Not implemented") })),
-    updateRevision: (_revisionId: string, _input: { readonly title?: string; readonly content?: TestCaseContent }) => Effect.fail(new RevisionUpdateError({ message: "Not implemented", revisionId: _revisionId, cause: new Error("Not implemented") })),
-    updateRevisionStatus: (_revisionId: string, _status: RevisionStatus, _userId?: string) => Effect.fail(new RevisionUpdateError({ message: "Not implemented", revisionId: _revisionId, cause: new Error("Not implemented") })),
+    findRevisionByNumber: (_caseId: string, _revisionNumber: number) =>
+      Effect.fail(
+        new TestCaseRevisionNotFoundError({ message: "Not implemented" }),
+      ),
+    createRevision: (_input: {
+      readonly caseId: string;
+      readonly title: string;
+      readonly content: TestCaseContent;
+      readonly createdBy: string;
+    }) =>
+      Effect.fail(
+        new RevisionCreationError({
+          message: "Not implemented",
+          cause: new Error("Not implemented"),
+        }),
+      ),
+    updateRevision: (
+      _revisionId: string,
+      _input: { readonly title?: string; readonly content?: TestCaseContent },
+    ) =>
+      Effect.fail(
+        new RevisionUpdateError({
+          message: "Not implemented",
+          revisionId: _revisionId,
+          cause: new Error("Not implemented"),
+        }),
+      ),
+    updateRevisionStatus: (
+      _revisionId: string,
+      _status: RevisionStatus,
+      _userId?: string,
+    ) =>
+      Effect.fail(
+        new RevisionUpdateError({
+          message: "Not implemented",
+          revisionId: _revisionId,
+          cause: new Error("Not implemented"),
+        }),
+      ),
     delete: (_caseId: string) => Effect.succeed(undefined),
-    findRevisionsByStatus: (_projectId: string, _status: RevisionStatus) => Effect.succeed([]),
+    findRevisionsByStatus: (_projectId: string, _status: RevisionStatus) =>
+      Effect.succeed([]),
   };
 };
 

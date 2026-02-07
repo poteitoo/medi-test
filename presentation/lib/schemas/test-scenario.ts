@@ -7,7 +7,9 @@ export const testScenarioCaseRefSchema = z.object({
   /**
    * テストケースID
    */
-  caseId: z.string().uuid({ message: "有効なテストケースIDを指定してください" }),
+  caseId: z
+    .string()
+    .uuid({ message: "有効なテストケースIDを指定してください" }),
 
   /**
    * リビジョン番号
@@ -33,7 +35,9 @@ export const createTestScenarioSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z.string().uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: z
+    .string()
+    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
 
   /**
    * タイトル
@@ -99,7 +103,9 @@ export const createTestScenarioListSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z.string().uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: z
+    .string()
+    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
 
   /**
    * タイトル
@@ -177,7 +183,9 @@ export const updateTestScenarioRevisionSchema = z.object({
   /**
    * リビジョンID
    */
-  revisionId: z.string().uuid({ message: "有効なリビジョンIDを指定してください" }),
+  revisionId: z
+    .string()
+    .uuid({ message: "有効なリビジョンIDを指定してください" }),
 
   /**
    * タイトル（オプション）

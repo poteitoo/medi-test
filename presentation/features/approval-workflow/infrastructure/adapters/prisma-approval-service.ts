@@ -5,7 +5,10 @@ import {
   ApprovalNotFoundError,
   ApprovalCreationError,
 } from "../../application/ports/approval-service";
-import { Approval, type ApprovalObjectType } from "../../domain/models/approval";
+import {
+  Approval,
+  type ApprovalObjectType,
+} from "../../domain/models/approval";
 
 /**
  * Prisma ApprovalService実装
@@ -19,7 +22,8 @@ export const PrismaApprovalService = Layer.effect(
       findById: (approvalId: string) =>
         Effect.gen(function* () {
           const approval = yield* Effect.tryPromise({
-            try: () => prisma.approval.findUnique({ where: { id: approvalId } }),
+            try: () =>
+              prisma.approval.findUnique({ where: { id: approvalId } }),
             catch: (error) =>
               new ApprovalNotFoundError(
                 `承認情報の取得に失敗しました: ${String(error)}`,
@@ -58,9 +62,7 @@ export const PrismaApprovalService = Layer.effect(
                 orderBy: { timestamp: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `承認履歴の取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`承認履歴の取得に失敗しました: ${String(error)}`),
           });
 
           return approvals.map(
@@ -87,9 +89,7 @@ export const PrismaApprovalService = Layer.effect(
                 orderBy: { timestamp: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `承認履歴の取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`承認履歴の取得に失敗しました: ${String(error)}`),
           });
 
           return approvals.map(

@@ -37,10 +37,7 @@ test.describe("TestCaseEditor", () => {
 
     // Add test steps
     await page.click('button:has-text("ステップを追加")');
-    await page.fill(
-      'textarea[placeholder*="ステップ1"]',
-      "ログイン画面を開く",
-    );
+    await page.fill('textarea[placeholder*="ステップ1"]', "ログイン画面を開く");
 
     await page.click('button:has-text("ステップを追加")');
     await page.fill(
@@ -49,7 +46,10 @@ test.describe("TestCaseEditor", () => {
     );
 
     await page.click('button:has-text("ステップを追加")');
-    await page.fill('textarea[placeholder*="ステップ3"]', "ログインボタンをクリック");
+    await page.fill(
+      'textarea[placeholder*="ステップ3"]',
+      "ログインボタンをクリック",
+    );
 
     // Fill in expected result
     await page.fill(
@@ -89,7 +89,10 @@ test.describe("TestCaseEditor", () => {
     );
 
     await page.click('button:has-text("ステップを追加")');
-    await page.fill('textarea[placeholder*="ステップ2"]', "削除ボタンをクリック");
+    await page.fill(
+      'textarea[placeholder*="ステップ2"]',
+      "削除ボタンをクリック",
+    );
 
     // Fill expected result
     await page.fill(
@@ -162,7 +165,9 @@ test.describe("TestCaseEditor", () => {
 
     // Verify new revision was created
     await expect(page.locator('text="リビジョン 2"')).toBeVisible();
-    await expect(page.locator('h1:has-text("更新されたテストケース")')).toBeVisible();
+    await expect(
+      page.locator('h1:has-text("更新されたテストケース")'),
+    ).toBeVisible();
   });
 
   test("should reorder test steps using drag and drop", async ({ page }) => {
@@ -174,9 +179,7 @@ test.describe("TestCaseEditor", () => {
     const steps = ["ステップ 1", "ステップ 2", "ステップ 3"];
     for (const step of steps) {
       await page.click('button:has-text("ステップを追加")');
-      const textarea = page
-        .locator('textarea[placeholder*="ステップ"]')
-        .last();
+      const textarea = page.locator('textarea[placeholder*="ステップ"]').last();
       await textarea.fill(step);
     }
 
@@ -230,18 +233,13 @@ test.describe("TestCaseEditor", () => {
     // Add step but leave it empty
     await page.click('button:has-text("ステップを追加")');
 
-    await page.fill(
-      'textarea[placeholder*="期待結果"]',
-      "何か期待結果",
-    );
+    await page.fill('textarea[placeholder*="期待結果"]', "何か期待結果");
 
     // Try to submit
     await page.click('button[type="submit"]:has-text("作成")');
 
     // Verify validation error
-    await expect(
-      page.locator('text="空のステップがあります"'),
-    ).toBeVisible();
+    await expect(page.locator('text="空のステップがあります"')).toBeVisible();
   });
 
   test("should cancel editing and discard changes", async ({ page }) => {
@@ -266,7 +264,7 @@ test.describe("TestCaseEditor", () => {
     await titleInput.fill("短いタイトル");
 
     // Verify character count is displayed
-    await expect(page.locator('text=/7 \/ 200/')).toBeVisible();
+    await expect(page.locator("text=/7 \/ 200/")).toBeVisible();
   });
 
   test("should prevent title exceeding max length", async ({ page }) => {

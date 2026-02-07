@@ -27,7 +27,9 @@ export class TestCaseAdapter {
   /**
    * プロジェクトのテストケース一覧を取得
    */
-  static async findByProjectId(projectId: string): Promise<readonly TestCase[]> {
+  static async findByProjectId(
+    projectId: string,
+  ): Promise<readonly TestCase[]> {
     const program = Effect.gen(function* () {
       const repo = yield* TestCaseRepository;
       return yield* repo.findByProjectId(projectId);
@@ -56,9 +58,7 @@ export class TestCaseAdapter {
   /**
    * リビジョンをIDで取得
    */
-  static async findRevisionById(
-    revisionId: string,
-  ): Promise<TestCaseRevision> {
+  static async findRevisionById(revisionId: string): Promise<TestCaseRevision> {
     const program = Effect.gen(function* () {
       const repo = yield* TestCaseRepository;
       return yield* repo.findRevisionById(revisionId);

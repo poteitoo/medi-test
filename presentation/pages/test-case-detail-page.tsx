@@ -99,10 +99,7 @@ export default function TestCaseDetailPage() {
 
           <div className="flex items-center gap-2">
             {latestRevision.status === "DRAFT" && (
-              <Button
-                onClick={handleSubmitForReview}
-                disabled={isSubmitting}
-              >
+              <Button onClick={handleSubmitForReview} disabled={isSubmitting}>
                 <Send className="mr-2 h-4 w-4" />
                 レビューに提出
               </Button>
@@ -125,9 +122,7 @@ export default function TestCaseDetailPage() {
             <GitBranch className="mr-2 h-4 w-4" />
             履歴 ({revisions.length})
           </TabsTrigger>
-          {compareRevision && (
-            <TabsTrigger value="diff">差分表示</TabsTrigger>
-          )}
+          {compareRevision && <TabsTrigger value="diff">差分表示</TabsTrigger>}
         </TabsList>
 
         {/* 内容タブ */}
@@ -158,15 +153,16 @@ export default function TestCaseDetailPage() {
                   <h3 className="text-lg font-semibold">
                     Rev {selectedRevision.rev} の内容
                   </h3>
-                  {selectedRevisionId && selectedRevisionId !== latestRevision.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCompareRevisionId(selectedRevisionId)}
-                    >
-                      最新版と比較
-                    </Button>
-                  )}
+                  {selectedRevisionId &&
+                    selectedRevisionId !== latestRevision.id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCompareRevisionId(selectedRevisionId)}
+                      >
+                        最新版と比較
+                      </Button>
+                    )}
                 </div>
                 <div className="rounded-lg border bg-card p-4">
                   <TestCaseEditor

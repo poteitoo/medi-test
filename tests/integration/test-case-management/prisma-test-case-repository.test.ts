@@ -217,10 +217,7 @@ describe("PrismaTestCaseRepository Integration", () => {
 
     const program = Effect.gen(function* () {
       const repo = yield* TestCaseRepository;
-      return yield* repo.updateRevisionStatus(
-        revision!.id,
-        "IN_REVIEW",
-      );
+      return yield* repo.updateRevisionStatus(revision!.id, "IN_REVIEW");
     }).pipe(
       Effect.provide(PrismaTestCaseRepository),
       Effect.provide(PrismaLayer),

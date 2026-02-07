@@ -131,9 +131,7 @@ export function useRevisionManagement(): UseRevisionManagementResult {
       await Effect.runPromise(program);
     } catch (err) {
       const error =
-        err instanceof Error
-          ? err
-          : new Error("レビュー提出に失敗しました");
+        err instanceof Error ? err : new Error("レビュー提出に失敗しました");
       setError(error);
       throw error;
     } finally {

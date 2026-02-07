@@ -124,7 +124,12 @@ export function TestCaseStatusBadge({
   const config = statusConfig[status];
 
   return (
-    <StatusBadge variant={config.variant} size={size} className={className} showIndicator>
+    <StatusBadge
+      variant={config.variant}
+      size={size}
+      className={className}
+      showIndicator
+    >
       {config.label}
     </StatusBadge>
   );

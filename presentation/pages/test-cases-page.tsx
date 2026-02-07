@@ -98,12 +98,7 @@ export default function TestCasesPage() {
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-800">{error.message}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={reload}
-            className="mt-2"
-          >
+          <Button variant="outline" size="sm" onClick={reload} className="mt-2">
             再読み込み
           </Button>
         </div>

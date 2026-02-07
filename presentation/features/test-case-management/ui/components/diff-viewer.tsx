@@ -76,9 +76,7 @@ function calculateDiff(
   }
 
   // 前提条件の比較
-  if (
-    oldRevision.content.preconditions !== newRevision.content.preconditions
-  ) {
+  if (oldRevision.content.preconditions !== newRevision.content.preconditions) {
     diffs.push({
       type: "changed",
       label: "前提条件",

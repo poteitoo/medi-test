@@ -1,5 +1,8 @@
 import { Context, Effect } from "effect";
-import type { Approval, ApprovalObjectType } from "../../domain/models/approval";
+import type {
+  Approval,
+  ApprovalObjectType,
+} from "../../domain/models/approval";
 
 /**
  * 承認エラー

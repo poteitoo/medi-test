@@ -59,10 +59,17 @@ export function useTestCase(projectId: string): UseTestCaseResult {
       );
 
       const result = await Effect.runPromise(program);
-      setTestCases(result as Array<{ testCase: TestCase; latestRevision: TestCaseRevision }>);
+      setTestCases(
+        result as Array<{
+          testCase: TestCase;
+          latestRevision: TestCaseRevision;
+        }>,
+      );
     } catch (err) {
       setError(
-        err instanceof Error ? err : new Error("テストケースの取得に失敗しました"),
+        err instanceof Error
+          ? err
+          : new Error("テストケースの取得に失敗しました"),
       );
     } finally {
       setIsLoading(false);

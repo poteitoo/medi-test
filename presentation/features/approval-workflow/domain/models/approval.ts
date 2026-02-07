@@ -83,10 +83,7 @@ export const APPROVAL_ACTION_LABELS: Record<ApprovalAction, string> = {
 /**
  * 承認オブジェクトタイプの表示名
  */
-export const APPROVAL_OBJECT_TYPE_LABELS: Record<
-  ApprovalObjectType,
-  string
-> = {
+export const APPROVAL_OBJECT_TYPE_LABELS: Record<ApprovalObjectType, string> = {
   CASE_REVISION: "テストケース",
   SCENARIO_REVISION: "テストシナリオ",
   LIST_REVISION: "テストシナリオリスト",
