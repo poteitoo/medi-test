@@ -9,6 +9,8 @@ export default [
     "../presentation/pages/test-case-detail-page.tsx",
   ),
   route("test-scenarios", "../presentation/pages/test-scenarios-page.tsx"),
+  route("releases", "../presentation/pages/releases-page.tsx"),
+  route("releases/:releaseId", "../presentation/pages/release-detail-page.tsx"),
 
   // API Routes
   route("api/test-cases", "./routes/api.test-cases.ts"),
@@ -21,4 +23,17 @@ export default [
     "./routes/api.test-cases.revisions.$revisionId.submit-for-review.ts",
   ),
   route("api/approvals", "./routes/api.approvals.ts"),
+  route("api/releases", "./routes/api.releases.ts"),
+  route(
+    "api/releases/:releaseId/baselines",
+    "./routes/api.releases.$releaseId.baselines.ts",
+  ),
+  route(
+    "api/releases/:releaseId/gate-evaluation",
+    "./routes/api.releases.$releaseId.gate-evaluation.ts",
+  ),
+  route(
+    "api/releases/:releaseId/waivers",
+    "./routes/api.releases.$releaseId.waivers.ts",
+  ),
 ] satisfies RouteConfig;
