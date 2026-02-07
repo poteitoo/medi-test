@@ -38,8 +38,6 @@ export const PrismaOrganizationRepository = Layer.effect(
             id: org.id,
             name: org.name,
             slug: org.slug,
-            description: org.description ?? undefined,
-            logoUrl: org.logo_url ?? undefined,
             createdAt: org.created_at,
             updatedAt: org.updated_at,
           });
@@ -65,8 +63,6 @@ export const PrismaOrganizationRepository = Layer.effect(
             id: org.id,
             name: org.name,
             slug: org.slug,
-            description: org.description ?? undefined,
-            logoUrl: org.logo_url ?? undefined,
             createdAt: org.created_at,
             updatedAt: org.updated_at,
           });
@@ -86,8 +82,6 @@ export const PrismaOrganizationRepository = Layer.effect(
                 id: org.id,
                 name: org.name,
                 slug: org.slug,
-                description: org.description ?? undefined,
-                logoUrl: org.logo_url ?? undefined,
                 createdAt: org.created_at,
                 updatedAt: org.updated_at,
               }),
@@ -119,8 +113,6 @@ export const PrismaOrganizationRepository = Layer.effect(
                 data: {
                   name: input.name,
                   slug: input.slug,
-                  description: input.description ?? null,
-                  logo_url: input.logoUrl ?? null,
                 },
               }),
             catch: (error) =>
@@ -133,8 +125,6 @@ export const PrismaOrganizationRepository = Layer.effect(
             id: org.id,
             name: org.name,
             slug: org.slug,
-            description: org.description ?? undefined,
-            logoUrl: org.logo_url ?? undefined,
             createdAt: org.created_at,
             updatedAt: org.updated_at,
           });
@@ -149,8 +139,6 @@ export const PrismaOrganizationRepository = Layer.effect(
                 data: {
                   name: input.name,
                   slug: input.slug,
-                  description: input.description ?? null,
-                  logo_url: input.logoUrl ?? null,
                 },
               }),
             catch: (error) =>
@@ -163,8 +151,6 @@ export const PrismaOrganizationRepository = Layer.effect(
             id: org.id,
             name: org.name,
             slug: org.slug,
-            description: org.description ?? undefined,
-            logoUrl: org.logo_url ?? undefined,
             createdAt: org.created_at,
             updatedAt: org.updated_at,
           });

@@ -56,7 +56,7 @@ export function ApprovalHistory({
 
       <div className="space-y-3">
         {approvals.map((approval) => {
-          const isApproved = approval.action === "APPROVE";
+          const isApproved = approval.decision === "APPROVED";
 
           return (
             <div
@@ -85,7 +85,7 @@ export function ApprovalHistory({
                         isApproved ? "text-green-900" : "text-red-900"
                       }`}
                     >
-                      {APPROVAL_ACTION_LABELS[approval.action]}
+                      {APPROVAL_ACTION_LABELS[approval.decision]}
                     </div>
                     <div
                       className={`flex items-center gap-1.5 text-sm ${
@@ -105,7 +105,7 @@ export function ApprovalHistory({
                   }`}
                 >
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{formatDateTime(approval.createdAt)}</span>
+                  <span>{formatDateTime(approval.timestamp)}</span>
                 </div>
               </div>
 

@@ -40,8 +40,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });
@@ -75,8 +73,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });
@@ -104,8 +100,6 @@ export const PrismaProjectRepository = Layer.effect(
                 name: p.name,
                 slug: p.slug,
                 description: p.description ?? undefined,
-                repositoryUrl: p.repository_url ?? undefined,
-                isArchived: p.is_archived,
                 createdAt: p.created_at,
                 updatedAt: p.updated_at,
               }),
@@ -119,7 +113,6 @@ export const PrismaProjectRepository = Layer.effect(
               prisma.project.findMany({
                 where: {
                   organization_id: organizationId,
-                  is_archived: false,
                 },
                 orderBy: { created_at: "desc" },
               }),
@@ -137,8 +130,6 @@ export const PrismaProjectRepository = Layer.effect(
                 name: p.name,
                 slug: p.slug,
                 description: p.description ?? undefined,
-                repositoryUrl: p.repository_url ?? undefined,
-                isArchived: p.is_archived,
                 createdAt: p.created_at,
                 updatedAt: p.updated_at,
               }),
@@ -175,7 +166,6 @@ export const PrismaProjectRepository = Layer.effect(
                   name: input.name,
                   slug: input.slug,
                   description: input.description ?? null,
-                  repository_url: input.repositoryUrl ?? null,
                 },
               }),
             catch: (error) =>
@@ -190,8 +180,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });
@@ -210,14 +198,6 @@ export const PrismaProjectRepository = Layer.effect(
                     input.description !== undefined
                       ? input.description
                       : undefined,
-                  repository_url:
-                    input.repositoryUrl !== undefined
-                      ? input.repositoryUrl
-                      : undefined,
-                  is_archived:
-                    input.isArchived !== undefined
-                      ? input.isArchived
-                      : undefined,
                 },
               }),
             catch: (error) =>
@@ -232,8 +212,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });
@@ -252,17 +230,20 @@ export const PrismaProjectRepository = Layer.effect(
 
       archive: (id: string) =>
         Effect.gen(function* () {
+          // アーカイブフィールドがないため、プロジェクトを返すのみ
           const project = yield* Effect.tryPromise({
-            try: () =>
-              prisma.project.update({
-                where: { id },
-                data: { is_archived: true },
-              }),
+            try: () => prisma.project.findUnique({ where: { id } }),
             catch: (error) =>
               new ProjectNotFoundError(
-                `プロジェクトのアーカイブに失敗しました: ${String(error)}`,
+                `プロジェクトの取得に失敗しました: ${String(error)}`,
               ),
           });
+
+          if (!project) {
+            return yield* Effect.fail(
+              new ProjectNotFoundError(`プロジェクトが見つかりません: ${id}`),
+            );
+          }
 
           return new Project({
             id: project.id,
@@ -270,8 +251,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });
@@ -279,17 +258,20 @@ export const PrismaProjectRepository = Layer.effect(
 
       unarchive: (id: string) =>
         Effect.gen(function* () {
+          // アーカイブフィールドがないため、何もしない
           const project = yield* Effect.tryPromise({
-            try: () =>
-              prisma.project.update({
-                where: { id },
-                data: { is_archived: false },
-              }),
+            try: () => prisma.project.findUnique({ where: { id } }),
             catch: (error) =>
               new ProjectNotFoundError(
-                `プロジェクトのアーカイブ解除に失敗しました: ${String(error)}`,
+                `プロジェクトの取得に失敗しました: ${String(error)}`,
               ),
           });
+
+          if (!project) {
+            return yield* Effect.fail(
+              new ProjectNotFoundError(`プロジェクトが見つかりません: ${id}`),
+            );
+          }
 
           return new Project({
             id: project.id,
@@ -297,8 +279,6 @@ export const PrismaProjectRepository = Layer.effect(
             name: project.name,
             slug: project.slug,
             description: project.description ?? undefined,
-            repositoryUrl: project.repository_url ?? undefined,
-            isArchived: project.is_archived,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           });

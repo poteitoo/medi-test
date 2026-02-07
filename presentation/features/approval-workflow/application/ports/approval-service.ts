@@ -57,6 +57,7 @@ export class ApprovalService extends Context.Tag("ApprovalService")<
       readonly objectId: string;
       readonly objectType: ApprovalObjectType;
       readonly approverId: string;
+      readonly step?: number;
       readonly comment?: string;
     }) => Effect.Effect<Approval, ApprovalCreationError>;
 
@@ -67,6 +68,7 @@ export class ApprovalService extends Context.Tag("ApprovalService")<
       readonly objectId: string;
       readonly objectType: ApprovalObjectType;
       readonly approverId: string;
+      readonly step?: number;
       readonly comment?: string;
     }) => Effect.Effect<Approval, ApprovalCreationError>;
 

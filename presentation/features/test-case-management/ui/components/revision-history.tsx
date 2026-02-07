@@ -125,24 +125,19 @@ export function RevisionHistory({
                 </div>
 
                 {/* 承認情報 */}
-                {revision.status === "APPROVED" &&
-                  revision.approvedBy &&
-                  revision.approvedAt && (
-                    <div className="mt-2 rounded bg-green-50 p-2 text-xs text-green-700">
-                      <div className="flex items-center gap-1.5">
-                        <User className="h-3 w-3" />
-                        <span>
-                          {revision.approvedBy} が承認 ·{" "}
-                          {formatDateTime(revision.approvedAt)}
-                        </span>
-                      </div>
+                {revision.status === "APPROVED" && (
+                  <div className="mt-2 rounded bg-green-50 p-2 text-xs text-green-700">
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3 w-3" />
+                      <span>承認済み</span>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                {/* 却下情報 */}
-                {revision.status === "REJECTED" && (
-                  <div className="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
-                    却下されました
+                {/* 非推奨情報 */}
+                {revision.status === "DEPRECATED" && (
+                  <div className="mt-2 rounded bg-yellow-50 p-2 text-xs text-yellow-700">
+                    非推奨
                   </div>
                 )}
               </div>

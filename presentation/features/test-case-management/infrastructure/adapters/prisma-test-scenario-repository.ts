@@ -47,7 +47,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
             id: scenario.id,
             projectId: scenario.project_id,
             createdAt: scenario.created_at,
-            updatedAt: scenario.updated_at,
+            updatedAt: scenario.created_at, // TestScenario doesn't have updated_at in schema
           });
         }),
 
@@ -71,7 +71,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
                 id: s.id,
                 projectId: s.project_id,
                 createdAt: s.created_at,
-                updatedAt: s.updated_at,
+                updatedAt: s.created_at, // TestScenario doesn't have updated_at in schema
               }),
           );
         }),
@@ -89,8 +89,14 @@ export const PrismaTestScenarioRepository = Layer.effect(
                       status: "DRAFT",
                       title: input.title,
                       description: input.description ?? null,
-                      test_cases: input.testCases,
                       created_by: input.createdBy,
+                      items: {
+                        create: input.testCases.map((tc) => ({
+                          case_revision_id: tc.caseId,
+                          order: tc.order,
+                          optional_flag: false,
+                        })),
+                      },
                     },
                   },
                 },
@@ -105,7 +111,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
             id: scenario.id,
             projectId: scenario.project_id,
             createdAt: scenario.created_at,
-            updatedAt: scenario.updated_at,
+            updatedAt: scenario.created_at, // TestScenario doesn't have updated_at in schema
           });
         }),
 
@@ -115,6 +121,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
             try: () =>
               prisma.testScenarioRevision.findUnique({
                 where: { id: revisionId },
+                include: { items: true },
               }),
             catch: (error) =>
               new Error(`リビジョンの取得に失敗しました: ${String(error)}`),
@@ -128,23 +135,23 @@ export const PrismaTestScenarioRepository = Layer.effect(
 
           return new TestScenarioRevision({
             id: revision.id,
-            testScenarioId: revision.test_scenario_id,
+            testScenarioId: revision.scenario_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testCases: (revision.test_cases as Array<Record<string, unknown>>).map(
-              (tc) =>
+            testCases: revision.items.map(
+              (item) =>
                 new TestScenarioCaseRef({
-                  caseId: tc.caseId as string,
-                  revisionNumber: tc.revisionNumber as number,
-                  order: tc.order as number,
+                  caseId: item.case_revision_id,
+                  revisionNumber: 1, // TODO: Extract from case_revision
+                  order: item.order,
                 }),
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
+            approvedBy: undefined, // TODO: Fetch from Approval table
+            approvedAt: undefined, // TODO: Fetch from Approval table
           });
         }),
 
@@ -153,8 +160,9 @@ export const PrismaTestScenarioRepository = Layer.effect(
           const revision = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioRevision.findFirst({
-                where: { test_scenario_id: scenarioId },
+                where: { scenario_stable_id: scenarioId },
                 orderBy: { rev: "desc" },
+                include: { items: true },
               }),
             catch: (error) =>
               new Error(
@@ -172,23 +180,23 @@ export const PrismaTestScenarioRepository = Layer.effect(
 
           return new TestScenarioRevision({
             id: revision.id,
-            testScenarioId: revision.test_scenario_id,
+            testScenarioId: revision.scenario_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testCases: (revision.test_cases as Array<Record<string, unknown>>).map(
-              (tc) =>
+            testCases: revision.items.map(
+              (item) =>
                 new TestScenarioCaseRef({
-                  caseId: tc.caseId as string,
-                  revisionNumber: tc.revisionNumber as number,
-                  order: tc.order as number,
+                  caseId: item.case_revision_id,
+                  revisionNumber: 1, // TODO: Extract from case_revision
+                  order: item.order,
                 }),
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
+            approvedBy: undefined, // TODO: Fetch from Approval table
+            approvedAt: undefined, // TODO: Fetch from Approval table
           });
         }),
 
@@ -197,8 +205,9 @@ export const PrismaTestScenarioRepository = Layer.effect(
           const revisions = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioRevision.findMany({
-                where: { test_scenario_id: scenarioId },
+                where: { scenario_stable_id: scenarioId },
                 orderBy: { rev: "desc" },
+                include: { items: true },
               }),
             catch: (error) =>
               new Error(
@@ -210,23 +219,23 @@ export const PrismaTestScenarioRepository = Layer.effect(
             (r) =>
               new TestScenarioRevision({
                 id: r.id,
-                testScenarioId: r.test_scenario_id,
+                testScenarioId: r.scenario_stable_id,
                 rev: r.rev,
                 status: r.status as RevisionStatus,
                 title: r.title,
                 description: r.description ?? undefined,
-                testCases: (r.test_cases as Array<Record<string, unknown>>).map(
-                  (tc) =>
+                testCases: r.items.map(
+                  (item) =>
                     new TestScenarioCaseRef({
-                      caseId: tc.caseId as string,
-                      revisionNumber: tc.revisionNumber as number,
-                      order: tc.order as number,
+                      caseId: item.case_revision_id,
+                      revisionNumber: 1, // TODO: Extract from case_revision
+                      order: item.order,
                     }),
                 ),
                 createdBy: r.created_by,
                 createdAt: r.created_at,
-                approvedBy: r.approved_by ?? undefined,
-                approvedAt: r.approved_at ?? undefined,
+                approvedBy: undefined, // TODO: Fetch from Approval table
+                approvedAt: undefined, // TODO: Fetch from Approval table
               }),
           );
         }),
@@ -237,7 +246,7 @@ export const PrismaTestScenarioRepository = Layer.effect(
           const latestRev = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioRevision.findFirst({
-                where: { test_scenario_id: input.scenarioId },
+                where: { scenario_stable_id: input.scenarioId },
                 orderBy: { rev: "desc" },
                 select: { rev: true },
               }),
@@ -250,14 +259,21 @@ export const PrismaTestScenarioRepository = Layer.effect(
             try: () =>
               prisma.testScenarioRevision.create({
                 data: {
-                  test_scenario_id: input.scenarioId,
+                  scenario_stable_id: input.scenarioId,
                   rev: nextRev,
                   status: "DRAFT",
                   title: input.title,
                   description: input.description ?? null,
-                  test_cases: input.testCases,
                   created_by: input.createdBy,
+                  items: {
+                    create: input.testCases.map((tc) => ({
+                      case_revision_id: tc.caseId,
+                      order: tc.order,
+                      optional_flag: false,
+                    })),
+                  },
                 },
+                include: { items: true },
               }),
             catch: (error) =>
               new RevisionCreationError({
@@ -268,17 +284,17 @@ export const PrismaTestScenarioRepository = Layer.effect(
 
           return new TestScenarioRevision({
             id: revision.id,
-            testScenarioId: revision.test_scenario_id,
+            testScenarioId: revision.scenario_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testCases: (revision.test_cases as Array<Record<string, unknown>>).map(
-              (tc) =>
+            testCases: revision.items.map(
+              (item) =>
                 new TestScenarioCaseRef({
-                  caseId: tc.caseId as string,
-                  revisionNumber: tc.revisionNumber as number,
-                  order: tc.order as number,
+                  caseId: item.case_revision_id,
+                  revisionNumber: 1, // TODO: Extract from case_revision
+                  order: item.order,
                 }),
             ),
             createdBy: revision.created_by,
@@ -288,6 +304,23 @@ export const PrismaTestScenarioRepository = Layer.effect(
 
       updateRevision: (revisionId, input) =>
         Effect.gen(function* () {
+          // If testCases are being updated, handle items separately
+          if (input.testCases) {
+            // Delete existing items and create new ones
+            yield* Effect.tryPromise({
+              try: () =>
+                prisma.testScenarioItem.deleteMany({
+                  where: { scenario_revision_id: revisionId },
+                }),
+              catch: (error) =>
+                new RevisionUpdateError({
+                  message: `既存アイテムの削除に失敗しました: ${String(error)}`,
+                  revisionId,
+                  cause: error,
+                }),
+            });
+          }
+
           const revision = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioRevision.update({
@@ -298,9 +331,20 @@ export const PrismaTestScenarioRepository = Layer.effect(
                     input.description !== undefined
                       ? input.description
                       : undefined,
-                  test_cases: input.testCases as never,
                   status: input.status,
+                  ...(input.testCases
+                    ? {
+                        items: {
+                          create: input.testCases.map((tc) => ({
+                            case_revision_id: tc.caseId,
+                            order: tc.order,
+                            optional_flag: false,
+                          })),
+                        },
+                      }
+                    : {}),
                 },
+                include: { items: true },
               }),
             catch: (error) =>
               new RevisionUpdateError({
@@ -312,39 +356,36 @@ export const PrismaTestScenarioRepository = Layer.effect(
 
           return new TestScenarioRevision({
             id: revision.id,
-            testScenarioId: revision.test_scenario_id,
+            testScenarioId: revision.scenario_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testCases: (revision.test_cases as Array<Record<string, unknown>>).map(
-              (tc) =>
+            testCases: revision.items.map(
+              (item) =>
                 new TestScenarioCaseRef({
-                  caseId: tc.caseId as string,
-                  revisionNumber: tc.revisionNumber as number,
-                  order: tc.order as number,
+                  caseId: item.case_revision_id,
+                  revisionNumber: 1, // TODO: Extract from case_revision
+                  order: item.order,
                 }),
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
+            approvedBy: undefined, // TODO: Fetch from Approval table
+            approvedAt: undefined, // TODO: Fetch from Approval table
           });
         }),
 
       updateRevisionStatus: (revisionId, status, userId) =>
         Effect.gen(function* () {
-          const now = new Date();
           const revision = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioRevision.update({
                 where: { id: revisionId },
                 data: {
                   status,
-                  ...(status === "APPROVED" && userId
-                    ? { approved_by: userId, approved_at: now }
-                    : {}),
                 },
+                include: { items: true },
               }),
             catch: (error) =>
               new RevisionUpdateError({
@@ -354,25 +395,42 @@ export const PrismaTestScenarioRepository = Layer.effect(
               }),
           });
 
+          // If status is APPROVED and userId provided, create approval record
+          if (status === "APPROVED" && userId) {
+            yield* Effect.tryPromise({
+              try: () =>
+                prisma.approval.create({
+                  data: {
+                    object_type: "SCENARIO_REVISION",
+                    object_id: revisionId,
+                    step: 1,
+                    decision: "APPROVED",
+                    approver_id: userId,
+                  },
+                }),
+              catch: () => null, // Ignore approval creation errors
+            }).pipe(Effect.orElseSucceed(() => null));
+          }
+
           return new TestScenarioRevision({
             id: revision.id,
-            testScenarioId: revision.test_scenario_id,
+            testScenarioId: revision.scenario_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testCases: (revision.test_cases as Array<Record<string, unknown>>).map(
-              (tc) =>
+            testCases: revision.items.map(
+              (item) =>
                 new TestScenarioCaseRef({
-                  caseId: tc.caseId as string,
-                  revisionNumber: tc.revisionNumber as number,
-                  order: tc.order as number,
+                  caseId: item.case_revision_id,
+                  revisionNumber: 1, // TODO: Extract from case_revision
+                  order: item.order,
                 }),
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
+            approvedBy: undefined, // TODO: Fetch from Approval table
+            approvedAt: undefined, // TODO: Fetch from Approval table
           });
         }),
 

@@ -52,6 +52,17 @@ export const hasRole = (
 };
 
 /**
+ * 複数ロールのいずれかを持っているかチェック
+ */
+export const hasAnyRole = (
+  assignments: readonly RoleAssignment[],
+  roles: readonly RoleType[],
+  scope?: { organizationId?: string; projectId?: string },
+): boolean => {
+  return roles.some((role) => hasRole(assignments, role, scope));
+};
+
+/**
  * 管理者権限チェック
  */
 export const isAdmin = (assignments: readonly RoleAssignment[]): boolean => {

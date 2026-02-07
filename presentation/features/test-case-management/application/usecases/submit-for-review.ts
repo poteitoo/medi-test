@@ -48,12 +48,12 @@ export const submitForReview = (input: SubmitForReviewInput) =>
     }
 
     // ステータス遷移が可能かチェック
-    if (!canTransitionTo(revision.status, "PENDING_APPROVAL")) {
+    if (!canTransitionTo(revision.status, "IN_REVIEW")) {
       return yield* Effect.fail(
         new InvalidStatusTransitionError({
-          message: `${revision.status} から PENDING_APPROVAL への遷移はできません`,
+          message: `${revision.status} から IN_REVIEW への遷移はできません`,
           from: revision.status,
-          to: "PENDING_APPROVAL",
+          to: "IN_REVIEW",
         }),
       );
     }
@@ -61,7 +61,7 @@ export const submitForReview = (input: SubmitForReviewInput) =>
     // ステータスを更新
     const updatedRevision = yield* repo.updateRevisionStatus(
       input.revisionId,
-      "PENDING_APPROVAL",
+      "IN_REVIEW",
     );
 
     return updatedRevision;

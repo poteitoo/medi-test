@@ -22,16 +22,6 @@ export class Organization extends Data.Class<{
   readonly slug: string;
 
   /**
-   * 組織説明（オプション）
-   */
-  readonly description?: string;
-
-  /**
-   * 組織ロゴURL（オプション）
-   */
-  readonly logoUrl?: string;
-
-  /**
    * 作成日時
    */
   readonly createdAt: Date;

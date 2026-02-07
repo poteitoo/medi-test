@@ -39,9 +39,10 @@ export const PrismaApprovalService = Layer.effect(
             objectId: approval.object_id,
             objectType: approval.object_type as ApprovalObjectType,
             approverId: approval.approver_id,
-            action: approval.action as "APPROVE" | "REJECT",
+            decision: approval.decision as "APPROVED" | "REJECTED",
             comment: approval.comment ?? undefined,
-            createdAt: approval.created_at,
+            timestamp: approval.timestamp,
+            step: approval.step,
           });
         }),
 
@@ -54,7 +55,7 @@ export const PrismaApprovalService = Layer.effect(
                   object_id: objectId,
                   object_type: objectType,
                 },
-                orderBy: { created_at: "desc" },
+                orderBy: { timestamp: "desc" },
               }),
             catch: (error) =>
               new Error(
@@ -69,9 +70,10 @@ export const PrismaApprovalService = Layer.effect(
                 objectId: a.object_id,
                 objectType: a.object_type as ApprovalObjectType,
                 approverId: a.approver_id,
-                action: a.action as "APPROVE" | "REJECT",
+                decision: a.decision as "APPROVED" | "REJECTED",
+                step: a.step,
                 comment: a.comment ?? undefined,
-                createdAt: a.created_at,
+                timestamp: a.timestamp,
               }),
           );
         }),
@@ -82,7 +84,7 @@ export const PrismaApprovalService = Layer.effect(
             try: () =>
               prisma.approval.findMany({
                 where: { approver_id: approverId },
-                orderBy: { created_at: "desc" },
+                orderBy: { timestamp: "desc" },
               }),
             catch: (error) =>
               new Error(
@@ -97,9 +99,10 @@ export const PrismaApprovalService = Layer.effect(
                 objectId: a.object_id,
                 objectType: a.object_type as ApprovalObjectType,
                 approverId: a.approver_id,
-                action: a.action as "APPROVE" | "REJECT",
+                decision: a.decision as "APPROVED" | "REJECTED",
+                step: a.step,
                 comment: a.comment ?? undefined,
-                createdAt: a.created_at,
+                timestamp: a.timestamp,
               }),
           );
         }),
@@ -113,7 +116,8 @@ export const PrismaApprovalService = Layer.effect(
                   object_id: input.objectId,
                   object_type: input.objectType,
                   approver_id: input.approverId,
-                  action: "APPROVE",
+                  step: input.step ?? 1,
+                  decision: "APPROVED",
                   comment: input.comment ?? null,
                 },
               }),
@@ -128,9 +132,10 @@ export const PrismaApprovalService = Layer.effect(
             objectId: approval.object_id,
             objectType: approval.object_type as ApprovalObjectType,
             approverId: approval.approver_id,
-            action: "APPROVE",
+            step: approval.step,
+            decision: "APPROVED",
             comment: approval.comment ?? undefined,
-            createdAt: approval.created_at,
+            timestamp: approval.timestamp,
           });
         }),
 
@@ -143,7 +148,8 @@ export const PrismaApprovalService = Layer.effect(
                   object_id: input.objectId,
                   object_type: input.objectType,
                   approver_id: input.approverId,
-                  action: "REJECT",
+                  step: input.step ?? 1,
+                  decision: "REJECTED",
                   comment: input.comment ?? null,
                 },
               }),
@@ -158,9 +164,10 @@ export const PrismaApprovalService = Layer.effect(
             objectId: approval.object_id,
             objectType: approval.object_type as ApprovalObjectType,
             approverId: approval.approver_id,
-            action: "REJECT",
+            step: approval.step,
+            decision: "REJECTED",
             comment: approval.comment ?? undefined,
-            createdAt: approval.created_at,
+            timestamp: approval.timestamp,
           });
         }),
 
@@ -183,7 +190,7 @@ export const PrismaApprovalService = Layer.effect(
                 where: {
                   object_id: objectId,
                   object_type: objectType,
-                  action: "APPROVE",
+                  decision: "APPROVED",
                 },
               }),
             catch: () => null,
@@ -200,7 +207,7 @@ export const PrismaApprovalService = Layer.effect(
                 where: {
                   object_id: objectId,
                   object_type: objectType,
-                  action: "REJECT",
+                  decision: "REJECTED",
                 },
               }),
             catch: () => null,

@@ -47,7 +47,6 @@ export const PrismaTestScenarioListRepository = Layer.effect(
             id: list.id,
             projectId: list.project_id,
             createdAt: list.created_at,
-            updatedAt: list.updated_at,
           });
         }),
 
@@ -71,7 +70,6 @@ export const PrismaTestScenarioListRepository = Layer.effect(
                 id: l.id,
                 projectId: l.project_id,
                 createdAt: l.created_at,
-                updatedAt: l.updated_at,
               }),
           );
         }),
@@ -89,7 +87,6 @@ export const PrismaTestScenarioListRepository = Layer.effect(
                       status: "DRAFT",
                       title: input.title,
                       description: input.description ?? null,
-                      test_scenarios: input.testScenarios,
                       created_by: input.createdBy,
                     },
                   },
@@ -105,7 +102,6 @@ export const PrismaTestScenarioListRepository = Layer.effect(
             id: list.id,
             projectId: list.project_id,
             createdAt: list.created_at,
-            updatedAt: list.updated_at,
           });
         }),
 
@@ -128,25 +124,14 @@ export const PrismaTestScenarioListRepository = Layer.effect(
 
           return new TestScenarioListRevision({
             id: revision.id,
-            testScenarioListId: revision.test_scenario_list_id,
+            testScenarioListId: revision.list_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testScenarios: (
-              revision.test_scenarios as Array<Record<string, unknown>>
-            ).map(
-              (ts) =>
-                new TestScenarioListItemRef({
-                  scenarioId: ts.scenarioId as string,
-                  revisionNumber: ts.revisionNumber as number,
-                  order: ts.order as number,
-                }),
-            ),
+            testScenarios: [],
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -155,7 +140,7 @@ export const PrismaTestScenarioListRepository = Layer.effect(
           const revision = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioListRevision.findFirst({
-                where: { test_scenario_list_id: listId },
+                where: { list_stable_id: listId },
                 orderBy: { rev: "desc" },
               }),
             catch: (error) =>
@@ -174,25 +159,14 @@ export const PrismaTestScenarioListRepository = Layer.effect(
 
           return new TestScenarioListRevision({
             id: revision.id,
-            testScenarioListId: revision.test_scenario_list_id,
+            testScenarioListId: revision.list_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testScenarios: (
-              revision.test_scenarios as Array<Record<string, unknown>>
-            ).map(
-              (ts) =>
-                new TestScenarioListItemRef({
-                  scenarioId: ts.scenarioId as string,
-                  revisionNumber: ts.revisionNumber as number,
-                  order: ts.order as number,
-                }),
-            ),
+            testScenarios: [],
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -201,7 +175,7 @@ export const PrismaTestScenarioListRepository = Layer.effect(
           const revisions = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioListRevision.findMany({
-                where: { test_scenario_list_id: listId },
+                where: { list_stable_id: listId },
                 orderBy: { rev: "desc" },
               }),
             catch: (error) =>
@@ -214,25 +188,14 @@ export const PrismaTestScenarioListRepository = Layer.effect(
             (r) =>
               new TestScenarioListRevision({
                 id: r.id,
-                testScenarioListId: r.test_scenario_list_id,
+                testScenarioListId: r.list_stable_id,
                 rev: r.rev,
                 status: r.status as RevisionStatus,
                 title: r.title,
                 description: r.description ?? undefined,
-                testScenarios: (
-                  r.test_scenarios as Array<Record<string, unknown>>
-                ).map(
-                  (ts) =>
-                    new TestScenarioListItemRef({
-                      scenarioId: ts.scenarioId as string,
-                      revisionNumber: ts.revisionNumber as number,
-                      order: ts.order as number,
-                    }),
-                ),
+                testScenarios: [],
                 createdBy: r.created_by,
                 createdAt: r.created_at,
-                approvedBy: r.approved_by ?? undefined,
-                approvedAt: r.approved_at ?? undefined,
               }),
           );
         }),
@@ -243,7 +206,7 @@ export const PrismaTestScenarioListRepository = Layer.effect(
           const latestRev = yield* Effect.tryPromise({
             try: () =>
               prisma.testScenarioListRevision.findFirst({
-                where: { test_scenario_list_id: input.listId },
+                where: { list_stable_id: input.listId },
                 orderBy: { rev: "desc" },
                 select: { rev: true },
               }),
@@ -256,12 +219,11 @@ export const PrismaTestScenarioListRepository = Layer.effect(
             try: () =>
               prisma.testScenarioListRevision.create({
                 data: {
-                  test_scenario_list_id: input.listId,
+                  list_stable_id: input.listId,
                   rev: nextRev,
                   status: "DRAFT",
                   title: input.title,
                   description: input.description ?? null,
-                  test_scenarios: input.testScenarios,
                   created_by: input.createdBy,
                 },
               }),
@@ -274,21 +236,12 @@ export const PrismaTestScenarioListRepository = Layer.effect(
 
           return new TestScenarioListRevision({
             id: revision.id,
-            testScenarioListId: revision.test_scenario_list_id,
+            testScenarioListId: revision.list_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testScenarios: (
-              revision.test_scenarios as Array<Record<string, unknown>>
-            ).map(
-              (ts) =>
-                new TestScenarioListItemRef({
-                  scenarioId: ts.scenarioId as string,
-                  revisionNumber: ts.revisionNumber as number,
-                  order: ts.order as number,
-                }),
-            ),
+            testScenarios: [],
             createdBy: revision.created_by,
             createdAt: revision.created_at,
           });
@@ -306,7 +259,6 @@ export const PrismaTestScenarioListRepository = Layer.effect(
                     input.description !== undefined
                       ? input.description
                       : undefined,
-                  test_scenarios: input.testScenarios as never,
                   status: input.status,
                 },
               }),
@@ -320,25 +272,14 @@ export const PrismaTestScenarioListRepository = Layer.effect(
 
           return new TestScenarioListRevision({
             id: revision.id,
-            testScenarioListId: revision.test_scenario_list_id,
+            testScenarioListId: revision.list_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testScenarios: (
-              revision.test_scenarios as Array<Record<string, unknown>>
-            ).map(
-              (ts) =>
-                new TestScenarioListItemRef({
-                  scenarioId: ts.scenarioId as string,
-                  revisionNumber: ts.revisionNumber as number,
-                  order: ts.order as number,
-                }),
-            ),
+            testScenarios: [],
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -366,25 +307,14 @@ export const PrismaTestScenarioListRepository = Layer.effect(
 
           return new TestScenarioListRevision({
             id: revision.id,
-            testScenarioListId: revision.test_scenario_list_id,
+            testScenarioListId: revision.list_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             description: revision.description ?? undefined,
-            testScenarios: (
-              revision.test_scenarios as Array<Record<string, unknown>>
-            ).map(
-              (ts) =>
-                new TestScenarioListItemRef({
-                  scenarioId: ts.scenarioId as string,
-                  revisionNumber: ts.revisionNumber as number,
-                  order: ts.order as number,
-                }),
-            ),
+            testScenarios: [],
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 

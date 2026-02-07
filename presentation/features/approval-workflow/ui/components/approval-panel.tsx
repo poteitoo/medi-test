@@ -51,7 +51,7 @@ export function ApprovalPanel({
   const [showRejectForm, setShowRejectForm] = useState(false);
 
   // 承認待ち以外は操作不可
-  const canApprove = currentStatus === "PENDING_APPROVAL";
+  const canApprove = currentStatus === "IN_REVIEW";
 
   const handleApprove = async () => {
     try {

@@ -76,7 +76,7 @@ export default function TestCasesPage() {
           <SelectContent>
             <SelectItem value="all">すべて</SelectItem>
             <SelectItem value="DRAFT">下書き</SelectItem>
-            <SelectItem value="PENDING_APPROVAL">承認待ち</SelectItem>
+            <SelectItem value="IN_REVIEW">承認待ち</SelectItem>
             <SelectItem value="APPROVED">承認済み</SelectItem>
             <SelectItem value="REJECTED">却下</SelectItem>
             <SelectItem value="ARCHIVED">アーカイブ</SelectItem>
@@ -132,7 +132,7 @@ export default function TestCasesPage() {
             <div className="mt-1 text-2xl font-bold">
               {
                 testCases.filter(
-                  (item) => item.latestRevision.status === "PENDING_APPROVAL",
+                  (item) => item.latestRevision.status === "IN_REVIEW",
                 ).length
               }
             </div>

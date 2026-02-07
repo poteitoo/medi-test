@@ -65,7 +65,7 @@ export const rejectRevision = (input: RejectRevisionInput) =>
     // 却下情報を作成
     const approval = yield* approvalService.reject({
       objectId: input.revisionId,
-      objectType: "TEST_CASE_REVISION",
+      objectType: "CASE_REVISION",
       approverId: input.approverId,
       comment: input.comment,
     });
@@ -73,7 +73,7 @@ export const rejectRevision = (input: RejectRevisionInput) =>
     // リビジョンのステータスを却下に更新
     const updatedRevision = yield* testCaseRepo.updateRevisionStatus(
       input.revisionId,
-      "REJECTED",
+      "DEPRECATED",
     );
 
     return {

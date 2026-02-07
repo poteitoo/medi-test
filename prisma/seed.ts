@@ -83,22 +83,25 @@ async function main() {
   console.log(`✓ User created: ${admin.name}`);
 
   // Role割り当て - Admin
-  await prisma.roleAssignment.upsert({
+  const adminRoleExists = await prisma.roleAssignment.findFirst({
     where: {
-      user_id_organization_id_project_id_role: {
+      user_id: admin.id,
+      organization_id: org.id,
+      project_id: null,
+      role: "ADMIN",
+    },
+  });
+
+  if (!adminRoleExists) {
+    await prisma.roleAssignment.create({
+      data: {
         user_id: admin.id,
         organization_id: org.id,
         project_id: null,
         role: "ADMIN",
       },
-    },
-    update: {},
-    create: {
-      user_id: admin.id,
-      organization_id: org.id,
-      role: "ADMIN",
-    },
-  });
+    });
+  }
   console.log(`✓ Role assigned: ${admin.name} → ADMIN`);
 
   // Role割り当て - QA Manager

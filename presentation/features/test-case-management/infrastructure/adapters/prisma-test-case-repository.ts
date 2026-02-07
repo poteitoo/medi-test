@@ -49,7 +49,6 @@ export const PrismaTestCaseRepository = Layer.effect(
             id: testCase.id,
             projectId: testCase.project_id,
             createdAt: testCase.created_at,
-            updatedAt: testCase.updated_at,
           });
         }),
 
@@ -73,7 +72,6 @@ export const PrismaTestCaseRepository = Layer.effect(
                 id: tc.id,
                 projectId: tc.project_id,
                 createdAt: tc.created_at,
-                updatedAt: tc.updated_at,
               }),
           );
         }),
@@ -107,7 +105,6 @@ export const PrismaTestCaseRepository = Layer.effect(
             id: testCase.id,
             projectId: testCase.project_id,
             createdAt: testCase.created_at,
-            updatedAt: testCase.updated_at,
           });
         }),
 
@@ -136,17 +133,18 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -155,7 +153,7 @@ export const PrismaTestCaseRepository = Layer.effect(
           const revision = yield* Effect.tryPromise({
             try: () =>
               prisma.testCaseRevision.findFirst({
-                where: { test_case_id: caseId },
+                where: { case_stable_id: caseId },
                 orderBy: { rev: "desc" },
               }),
             catch: (error) =>
@@ -174,17 +172,18 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -193,7 +192,7 @@ export const PrismaTestCaseRepository = Layer.effect(
           const revisions = yield* Effect.tryPromise({
             try: () =>
               prisma.testCaseRevision.findMany({
-                where: { test_case_id: caseId },
+                where: { case_stable_id: caseId },
                 orderBy: { rev: "desc" },
               }),
             catch: (error) =>
@@ -206,15 +205,18 @@ export const PrismaTestCaseRepository = Layer.effect(
             (r) =>
               new TestCaseRevision({
                 id: r.id,
-                testCaseId: r.test_case_id,
+                testCaseId: r.case_stable_id,
                 rev: r.rev,
                 status: r.status as RevisionStatus,
                 title: r.title,
-                content: new TestCaseContent(r.content as Record<string, unknown>),
+                content: new TestCaseContent(
+                  r.content as unknown as {
+                    readonly steps: readonly string[];
+                    readonly expected_result: string;
+                  },
+                ),
                 createdBy: r.created_by,
                 createdAt: r.created_at,
-                approvedBy: r.approved_by ?? undefined,
-                approvedAt: r.approved_at ?? undefined,
               }),
           );
         }),
@@ -225,7 +227,7 @@ export const PrismaTestCaseRepository = Layer.effect(
             try: () =>
               prisma.testCaseRevision.findFirst({
                 where: {
-                  test_case_id: caseId,
+                  case_stable_id: caseId,
                   rev: revisionNumber,
                 },
               }),
@@ -245,17 +247,18 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -265,7 +268,7 @@ export const PrismaTestCaseRepository = Layer.effect(
           const latestRev = yield* Effect.tryPromise({
             try: () =>
               prisma.testCaseRevision.findFirst({
-                where: { test_case_id: input.caseId },
+                where: { case_stable_id: input.caseId },
                 orderBy: { rev: "desc" },
                 select: { rev: true },
               }),
@@ -278,7 +281,7 @@ export const PrismaTestCaseRepository = Layer.effect(
             try: () =>
               prisma.testCaseRevision.create({
                 data: {
-                  test_case_id: input.caseId,
+                  case_stable_id: input.caseId,
                   rev: nextRev,
                   status: "DRAFT",
                   title: input.title,
@@ -295,12 +298,15 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
@@ -329,17 +335,18 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -367,17 +374,18 @@ export const PrismaTestCaseRepository = Layer.effect(
 
           return new TestCaseRevision({
             id: revision.id,
-            testCaseId: revision.test_case_id,
+            testCaseId: revision.case_stable_id,
             rev: revision.rev,
             status: revision.status as RevisionStatus,
             title: revision.title,
             content: new TestCaseContent(
-              revision.content as Record<string, unknown>,
+              revision.content as unknown as {
+                readonly steps: readonly string[];
+                readonly expected_result: string;
+              },
             ),
             createdBy: revision.created_by,
             createdAt: revision.created_at,
-            approvedBy: revision.approved_by ?? undefined,
-            approvedAt: revision.approved_at ?? undefined,
           });
         }),
 
@@ -386,10 +394,9 @@ export const PrismaTestCaseRepository = Layer.effect(
           yield* Effect.tryPromise({
             try: () => prisma.testCase.delete({ where: { id: caseId } }),
             catch: (error) =>
-              new TestCaseUpdateError({
+              new TestCaseNotFoundError({
                 message: `テストケースの削除に失敗しました: ${String(error)}`,
                 caseId,
-                cause: error,
               }),
           });
         }),
@@ -417,15 +424,18 @@ export const PrismaTestCaseRepository = Layer.effect(
             (r) =>
               new TestCaseRevision({
                 id: r.id,
-                testCaseId: r.test_case_id,
+                testCaseId: r.case_stable_id,
                 rev: r.rev,
                 status: r.status as RevisionStatus,
                 title: r.title,
-                content: new TestCaseContent(r.content as Record<string, unknown>),
+                content: new TestCaseContent(
+                  r.content as unknown as {
+                    readonly steps: readonly string[];
+                    readonly expected_result: string;
+                  },
+                ),
                 createdBy: r.created_by,
                 createdAt: r.created_at,
-                approvedBy: r.approved_by ?? undefined,
-                approvedAt: r.approved_at ?? undefined,
               }),
           );
         }),

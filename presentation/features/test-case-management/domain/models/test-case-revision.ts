@@ -48,14 +48,4 @@ export class TestCaseRevision extends Data.Class<{
    * 作成日時
    */
   readonly createdAt: Date;
-
-  /**
-   * 承認者ユーザーID（承認済みの場合）
-   */
-  readonly approvedBy?: string;
-
-  /**
-   * 承認日時（承認済みの場合）
-   */
-  readonly approvedAt?: Date;
 }> {}

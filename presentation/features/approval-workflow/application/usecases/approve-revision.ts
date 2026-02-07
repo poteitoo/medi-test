@@ -58,7 +58,7 @@ export const approveRevision = (input: ApproveRevisionInput) =>
     // 承認情報を作成
     const approval = yield* approvalService.approve({
       objectId: input.revisionId,
-      objectType: "TEST_CASE_REVISION",
+      objectType: "CASE_REVISION",
       approverId: input.approverId,
       comment: input.comment,
     });

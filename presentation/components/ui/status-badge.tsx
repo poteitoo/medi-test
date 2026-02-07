@@ -105,25 +105,26 @@ export function StatusBadge({
 export function TestCaseStatusBadge({
   status,
   className,
+  size,
 }: {
-  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "ARCHIVED";
+  status: "DRAFT" | "IN_REVIEW" | "APPROVED" | "DEPRECATED";
   className?: string;
+  size?: StatusBadgeProps["size"];
 }) {
   const statusConfig: Record<
     typeof status,
     { variant: StatusBadgeProps["variant"]; label: string }
   > = {
     DRAFT: { variant: "default", label: "下書き" },
-    PENDING_APPROVAL: { variant: "warning", label: "承認待ち" },
+    IN_REVIEW: { variant: "warning", label: "レビュー中" },
     APPROVED: { variant: "success", label: "承認済み" },
-    REJECTED: { variant: "danger", label: "却下" },
-    ARCHIVED: { variant: "secondary", label: "アーカイブ" },
+    DEPRECATED: { variant: "secondary", label: "非推奨" },
   };
 
   const config = statusConfig[status];
 
   return (
-    <StatusBadge variant={config.variant} className={className} showIndicator>
+    <StatusBadge variant={config.variant} size={size} className={className} showIndicator>
       {config.label}
     </StatusBadge>
   );

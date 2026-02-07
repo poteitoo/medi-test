@@ -133,7 +133,7 @@ export class TestCaseAdapter {
    */
   static async updateRevisionStatus(
     revisionId: string,
-    status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "ARCHIVED",
+    status: "DRAFT" | "IN_REVIEW" | "APPROVED" | "DEPRECATED" | "DEPRECATED",
     userId?: string,
   ): Promise<TestCaseRevision> {
     const program = Effect.gen(function* () {
@@ -161,7 +161,7 @@ export class TestCaseAdapter {
    */
   static async findRevisionsByStatus(
     projectId: string,
-    status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "ARCHIVED",
+    status: "DRAFT" | "IN_REVIEW" | "APPROVED" | "DEPRECATED" | "DEPRECATED",
   ): Promise<readonly TestCaseRevision[]> {
     const program = Effect.gen(function* () {
       const repo = yield* TestCaseRepository;

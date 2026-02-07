@@ -32,16 +32,6 @@ export class Project extends Data.Class<{
   readonly description?: string;
 
   /**
-   * GitリポジトリURL（オプション）
-   */
-  readonly repositoryUrl?: string;
-
-  /**
-   * アーカイブ状態
-   */
-  readonly isArchived: boolean;
-
-  /**
    * 作成日時
    */
   readonly createdAt: Date;

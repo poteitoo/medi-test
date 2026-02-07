@@ -49,7 +49,7 @@ export const PrismaRBACAdapter = Layer.effect(
               new RoleAssignment({
                 id: a.id,
                 userId: a.user_id,
-                organizationId: a.organization_id,
+                organizationId: a.organization_id ?? undefined,
                 projectId: a.project_id ?? undefined,
                 role: a.role as RoleType,
                 createdAt: a.created_at,
@@ -72,7 +72,7 @@ export const PrismaRBACAdapter = Layer.effect(
               new RoleAssignment({
                 id: a.id,
                 userId: a.user_id,
-                organizationId: a.organization_id,
+                organizationId: a.organization_id ?? undefined,
                 projectId: a.project_id ?? undefined,
                 role: a.role as RoleType,
                 createdAt: a.created_at,
@@ -98,7 +98,7 @@ export const PrismaRBACAdapter = Layer.effect(
                 new RoleAssignment({
                   id: a.id,
                   userId: a.user_id,
-                  organizationId: a.organization_id,
+                  organizationId: a.organization_id ?? undefined,
                   projectId: a.project_id ?? undefined,
                   role: a.role as RoleType,
                   createdAt: a.created_at,
@@ -132,7 +132,7 @@ export const PrismaRBACAdapter = Layer.effect(
               new RoleAssignment({
                 id: a.id,
                 userId: a.user_id,
-                organizationId: a.organization_id,
+                organizationId: a.organization_id ?? undefined,
                 projectId: a.project_id ?? undefined,
                 role: a.role as RoleType,
                 createdAt: a.created_at,
@@ -158,7 +158,7 @@ export const PrismaRBACAdapter = Layer.effect(
                 new RoleAssignment({
                   id: a.id,
                   userId: a.user_id,
-                  organizationId: a.organization_id,
+                  organizationId: a.organization_id ?? undefined,
                   projectId: a.project_id ?? undefined,
                   role: a.role as RoleType,
                   createdAt: a.created_at,
@@ -185,7 +185,7 @@ export const PrismaRBACAdapter = Layer.effect(
                 data: {
                   user_id: input.userId,
                   organization_id: input.organizationId ?? "",
-                  project_id: input.projectId ?? null,
+                  project_id: input.projectId ?? undefined,
                   role: input.role,
                 },
               }),
@@ -196,7 +196,7 @@ export const PrismaRBACAdapter = Layer.effect(
           return new RoleAssignment({
             id: assignment.id,
             userId: assignment.user_id,
-            organizationId: assignment.organization_id,
+            organizationId: assignment.organization_id ?? undefined,
             projectId: assignment.project_id ?? undefined,
             role: assignment.role as RoleType,
             createdAt: assignment.created_at,

@@ -1,18 +1,21 @@
 import { Data } from "effect";
 
 /**
- * 承認アクション
+ * 承認決定（Prisma schema: ApprovalDecision）
  */
-export type ApprovalAction = "APPROVE" | "REJECT";
+export type ApprovalAction = "APPROVED" | "REJECTED";
 
 /**
- * 承認オブジェクトのタイプ
+ * 承認オブジェクトのタイプ（Prisma schema: ApprovalObjectType）
  */
 export type ApprovalObjectType =
-  | "TEST_CASE_REVISION"
-  | "TEST_SCENARIO_REVISION"
-  | "TEST_SCENARIO_LIST_REVISION"
-  | "RELEASE";
+  | "CASE_REVISION"
+  | "SCENARIO_REVISION"
+  | "LIST_REVISION"
+  | "MAPPING_REVISION"
+  | "WORKFLOW_REVISION"
+  | "RELEASE"
+  | "WAIVER";
 
 /**
  * Approval ドメインモデル
@@ -36,14 +39,19 @@ export class Approval extends Data.Class<{
   readonly objectType: ApprovalObjectType;
 
   /**
+   * 承認ステップ番号
+   */
+  readonly step: number;
+
+  /**
    * 承認者ユーザーID
    */
   readonly approverId: string;
 
   /**
-   * 承認アクション
+   * 承認決定
    */
-  readonly action: ApprovalAction;
+  readonly decision: ApprovalAction;
 
   /**
    * コメント（オプション）
@@ -53,7 +61,7 @@ export class Approval extends Data.Class<{
   /**
    * 承認日時
    */
-  readonly createdAt: Date;
+  readonly timestamp: Date;
 }> {}
 
 /**
@@ -68,8 +76,8 @@ export const requiresApproval = (objectType: ApprovalObjectType): boolean => {
  * 承認アクションの表示名
  */
 export const APPROVAL_ACTION_LABELS: Record<ApprovalAction, string> = {
-  APPROVE: "承認",
-  REJECT: "却下",
+  APPROVED: "承認",
+  REJECTED: "却下",
 };
 
 /**
@@ -79,8 +87,11 @@ export const APPROVAL_OBJECT_TYPE_LABELS: Record<
   ApprovalObjectType,
   string
 > = {
-  TEST_CASE_REVISION: "テストケース",
-  TEST_SCENARIO_REVISION: "テストシナリオ",
-  TEST_SCENARIO_LIST_REVISION: "テストシナリオリスト",
+  CASE_REVISION: "テストケース",
+  SCENARIO_REVISION: "テストシナリオ",
+  LIST_REVISION: "テストシナリオリスト",
+  MAPPING_REVISION: "マッピング",
+  WORKFLOW_REVISION: "ワークフロー",
   RELEASE: "リリース",
+  WAIVER: "適用除外",
 };
