@@ -127,11 +127,7 @@ export const includeRuleSchema = z.object({
    * - FULL: 全ケース実行
    * - REQUIRED_ONLY: 必須ケースのみ実行
    */
-  type: z.enum(["FULL", "REQUIRED_ONLY"], {
-    errorMap: () => ({
-      message: "有効なインクルードタイプを選択してください",
-    }),
-  }),
+  type: z.enum(["FULL", "REQUIRED_ONLY"]),
 });
 
 /**

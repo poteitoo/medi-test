@@ -99,9 +99,11 @@ export const approveRelease = (input: ApproveReleaseInput) =>
     }
 
     // 承認情報を作成
-    const approval = yield* approvalService.approve({
-      objectId: input.releaseId,
+    const approval = yield* approvalService.createApproval({
       objectType: "RELEASE",
+      objectId: input.releaseId,
+      step: 1,
+      decision: "APPROVED",
       approverId: input.approverId,
       comment: input.comment,
     });

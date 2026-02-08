@@ -52,12 +52,12 @@ export const testStepSchema = z.object({
 /**
  * テストケース優先度列挙型
  */
-export const testCasePrioritySchema = z.enum(
-  ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-  {
-    errorMap: () => ({ message: "有効な優先度を選択してください" }),
-  },
-);
+export const testCasePrioritySchema = z.enum([
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "CRITICAL",
+]);
 
 /**
  * テストケース内容スキーマ
@@ -286,9 +286,7 @@ export const updateRevisionStatusSchema = z.object({
   /**
    * ステータス
    */
-  status: z.enum(["DRAFT", "IN_REVIEW", "APPROVED", "DEPRECATED"], {
-    errorMap: () => ({ message: "有効なステータスを選択してください" }),
-  }),
+  status: z.enum(["DRAFT", "IN_REVIEW", "APPROVED", "DEPRECATED"]),
 
   /**
    * 更新者ユーザーID

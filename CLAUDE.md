@@ -48,6 +48,23 @@ npx tsc --noEmit            # TypeScript check only (MUST PASS before commit)
 pnpm fmt                    # Format with oxfmt
 ```
 
+## Development Workflow
+
+**IMPORTANT: Always run type checking after code changes**
+
+After making any code changes (adding features, fixing bugs, refactoring), you MUST run:
+
+```bash
+pnpm typecheck
+```
+
+This command:
+
+1. Generates TypeScript types from React Router routes
+2. Runs TypeScript compiler to check for type errors
+
+**Do not proceed with further changes until all type errors are resolved.** Type safety is critical for maintaining code quality and preventing runtime errors.
+
 ## Architecture: Layered DDD with Effect TS
 
 medi-test implements **Hexagonal Architecture (Ports & Adapters)** with strict layer separation:

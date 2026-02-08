@@ -4,27 +4,20 @@ import { uuidSchema } from "~/lib/schemas/common";
 /**
  * 承認オブジェクトタイプスキーマ
  */
-export const approvalObjectTypeSchema = z.enum(
-  [
-    "CASE_REVISION",
-    "SCENARIO_REVISION",
-    "LIST_REVISION",
-    "MAPPING_REVISION",
-    "WORKFLOW_REVISION",
-    "RELEASE",
-    "WAIVER",
-  ],
-  {
-    errorMap: () => ({ message: "有効なオブジェクトタイプを選択してください" }),
-  },
-);
+export const approvalObjectTypeSchema = z.enum([
+  "CASE_REVISION",
+  "SCENARIO_REVISION",
+  "LIST_REVISION",
+  "MAPPING_REVISION",
+  "WORKFLOW_REVISION",
+  "RELEASE",
+  "WAIVER",
+]);
 
 /**
  * 承認決定スキーマ
  */
-export const approvalDecisionSchema = z.enum(["APPROVED", "REJECTED"], {
-  errorMap: () => ({ message: "有効な承認決定を選択してください" }),
-});
+export const approvalDecisionSchema = z.enum(["APPROVED", "REJECTED"]);
 
 /**
  * 証拠リンクスキーマ

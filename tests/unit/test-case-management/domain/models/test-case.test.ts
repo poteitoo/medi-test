@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { TestCase } from "~/features/test-case-management/domain/models/test-case";
-import { TestCaseContent } from "~/features/test-case-management/domain/models/test-case-content";
+import {
+  TestCaseContent,
+  TestStep,
+} from "~/features/test-case-management/domain/models/test-case-content";
 import {
   canTransitionTo,
   isEditable,
@@ -37,18 +40,38 @@ describe("TestCase Domain Model", () => {
   describe("TestCaseContent", () => {
     it("should create valid content with required fields", () => {
       const content = new TestCaseContent({
-        steps: ["Step 1", "Step 2"],
-        expected_result: "Expected result",
+        steps: [
+          new TestStep({
+            stepNumber: 1,
+            action: "Step 1",
+            expectedOutcome: "Outcome 1",
+          }),
+          new TestStep({
+            stepNumber: 2,
+            action: "Step 2",
+            expectedOutcome: "Outcome 2",
+          }),
+        ],
+        expectedResult: "Expected result",
+        tags: [],
+        priority: "MEDIUM",
+        environment: "staging",
       });
 
       expect(content.steps).toHaveLength(2);
-      expect(content.expected_result).toBe("Expected result");
+      expect(content.expectedResult).toBe("Expected result");
     });
 
     it("should include optional fields", () => {
       const content = new TestCaseContent({
-        steps: ["Step 1"],
-        expected_result: "Result",
+        steps: [
+          new TestStep({
+            stepNumber: 1,
+            action: "Step 1",
+            expectedOutcome: "Outcome 1",
+          }),
+        ],
+        expectedResult: "Result",
         priority: "HIGH",
         tags: ["auth", "critical"],
         environment: "staging",
@@ -61,20 +84,32 @@ describe("TestCase Domain Model", () => {
 
     it("should validate content correctly", () => {
       const validContent = new TestCaseContent({
-        steps: ["Step 1"],
-        expected_result: "Result",
+        steps: [
+          new TestStep({
+            stepNumber: 1,
+            action: "Step 1",
+            expectedOutcome: "Outcome 1",
+          }),
+        ],
+        expectedResult: "Result",
+        tags: [],
+        priority: "MEDIUM",
+        environment: "staging",
       });
 
       // TestCaseContent validation is done at the Zod schema level
       // The domain model accepts the data as-is
       expect(validContent.steps).toHaveLength(1);
-      expect(validContent.expected_result).toBe("Result");
+      expect(validContent.expectedResult).toBe("Result");
     });
 
     it("should fail validation with empty steps", () => {
       const invalidContent = new TestCaseContent({
         steps: [],
-        expected_result: "Result",
+        expectedResult: "Result",
+        tags: [],
+        priority: "MEDIUM",
+        environment: "staging",
       });
 
       // Empty steps are caught at validation time via Zod schema, not at construction
