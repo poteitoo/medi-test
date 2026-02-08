@@ -4,7 +4,7 @@ import { Effect, Layer } from "effect";
 import { TestExecutionLayer } from "~/features/test-execution/infrastructure/layers/test-execution-layer";
 import { TestRunRepository } from "~/features/test-execution/application/ports/test-run-repository";
 import { TestResultRepository } from "~/features/test-execution/application/ports/test-result-repository";
-import { Database, PrismaLayer } from "~/shared/db/layers/prisma-layer";
+import { Database, PrismaLayer } from "@shared/db/layers/prisma-layer";
 
 /**
  * GET /api/test-runs/:runId

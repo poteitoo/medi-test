@@ -1,6 +1,6 @@
 import { Layer, Context } from "effect";
 import type { PrismaClient } from "@prisma/client";
-import { getPrismaClient } from "~/shared/db/client";
+import { getPrismaClient } from "@shared/db/client";
 
 /**
  * Database Service Tag
@@ -10,7 +10,7 @@ import { getPrismaClient } from "~/shared/db/client";
  * @example
  * ```typescript
  * import { Effect } from "effect";
- * import { Database } from "~/shared/db/layers/prisma-layer";
+ * import { Database } from "@shared/db/layers/prisma-layer";
  *
  * const program = Effect.gen(function* () {
  *   const db = yield* Database;

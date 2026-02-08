@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import type { PrismaClient } from "@prisma/client";
-import { Database } from "~/shared/db/layers/prisma-layer";
+import { Database } from "@shared/db/layers/prisma-layer";
 
 /**
  * Prisma Transaction Utility
@@ -14,7 +14,7 @@ import { Database } from "~/shared/db/layers/prisma-layer";
  *
  * @example
  * ```typescript
- * import { withTransaction } from "~/shared/db/transaction";
+ * import { withTransaction } from "@shared/db/transaction";
  *
  * const program = withTransaction((tx) =>
  *   Effect.gen(function* () {
