@@ -11,7 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
-import { TestScenarioListItemRef } from "../../domain/models/test-scenario-list-revision";
+import { TestScenarioListItem } from "../../domain/models/test-scenario-list-revision";
 
 /**
  * テストシナリオリストビルダーのProps
@@ -30,7 +30,7 @@ type TestScenarioListBuilderProps = {
   /**
    * テストシナリオのリスト
    */
-  testScenarios: readonly TestScenarioListItemRef[];
+  testScenarios: readonly TestScenarioListItem[];
 
   /**
    * タイトル変更時のコールバック
@@ -45,7 +45,7 @@ type TestScenarioListBuilderProps = {
   /**
    * テストシナリオ追加時のコールバック
    */
-  onAddScenario: (scenario: TestScenarioListItemRef) => void;
+  onAddScenario: (scenario: TestScenarioListItem) => void;
 
   /**
    * テストシナリオ削除時のコールバック
@@ -55,7 +55,7 @@ type TestScenarioListBuilderProps = {
   /**
    * テストシナリオ順序変更時のコールバック
    */
-  onReorderScenarios: (scenarios: readonly TestScenarioListItemRef[]) => void;
+  onReorderScenarios: (scenarios: readonly TestScenarioListItem[]) => void;
 
   /**
    * 読み取り専用モード
@@ -85,9 +85,8 @@ export function TestScenarioListBuilder({
   const handleAddScenario = () => {
     if (!newScenarioId.trim()) return;
 
-    const newScenario = new TestScenarioListItemRef({
-      scenarioId: newScenarioId.trim(),
-      revisionNumber: Number.parseInt(newRevNumber, 10) || 1,
+    const newScenario = new TestScenarioListItem({
+      scenarioRevisionId: newScenarioId.trim(),
       order: testScenarios.length + 1,
     });
 
@@ -106,10 +105,12 @@ export function TestScenarioListBuilder({
     ];
 
     // order を再計算
-    const reordered = newScenarios.map((s, i) => ({
-      ...s,
-      order: i + 1,
-    }));
+    const reordered = newScenarios.map((s, i) =>
+      new TestScenarioListItem({
+        ...s,
+        order: i + 1,
+      }),
+    );
 
     onReorderScenarios(reordered);
   };
@@ -124,10 +125,12 @@ export function TestScenarioListBuilder({
     ];
 
     // order を再計算
-    const reordered = newScenarios.map((s, i) => ({
-      ...s,
-      order: i + 1,
-    }));
+    const reordered = newScenarios.map((s, i) =>
+      new TestScenarioListItem({
+        ...s,
+        order: i + 1,
+      }),
+    );
 
     onReorderScenarios(reordered);
   };
@@ -209,7 +212,7 @@ export function TestScenarioListBuilder({
           <div className="space-y-2">
             {testScenarios.map((scenario, index) => (
               <div
-                key={`${scenario.scenarioId}-${index}`}
+                key={`${scenario.scenarioRevisionId}-${index}`}
                 className="flex items-center gap-2 rounded-lg border bg-card p-4"
               >
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -217,9 +220,9 @@ export function TestScenarioListBuilder({
                   {index + 1}.
                 </span>
                 <div className="flex-1">
-                  <div className="font-medium">{scenario.scenarioId}</div>
+                  <div className="font-medium">{scenario.scenarioRevisionId}</div>
                   <div className="text-xs text-muted-foreground">
-                    Rev {scenario.revisionNumber}
+                    {scenario.includeRule ?? "FULL"}
                   </div>
                 </div>
 

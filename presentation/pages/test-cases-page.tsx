@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import {
+  Link,
+  useLoaderData,
+  useActionData,
+  useSearchParams,
+  redirect,
+  data,
+} from "react-router";
 import { Plus, Filter } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -10,8 +17,29 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { TestCaseList } from "~/features/test-case-management/ui/components/test-case-list";
-import { useTestCase } from "~/features/test-case-management/ui/hooks/use-test-case";
+import { executeListTestCases } from "~/features/test-case-management/ui/adapters/test-case-adapter";
 import type { RevisionStatus } from "~/features/test-case-management/domain/models/revision-status";
+import type { TestCaseWithLatestRevision } from "~/features/test-case-management/application/usecases/list-test-cases";
+
+/**
+ * ローダー関数：テストケース一覧を取得
+ */
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const projectId = url.searchParams.get("projectId") || "sample-project-id";
+
+  try {
+    const testCases = (await executeListTestCases(projectId, {
+      includeLatestRevision: true,
+    })) as readonly TestCaseWithLatestRevision[];
+
+    return { testCases, projectId };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "テストケースの取得に失敗しました";
+    return { testCases: [], projectId, error: errorMessage };
+  }
+}
 
 /**
  * テストケース一覧ページ
@@ -20,15 +48,13 @@ import type { RevisionStatus } from "~/features/test-case-management/domain/mode
  * 新規作成や絞り込みを行う
  */
 export default function TestCasesPage() {
+  const { testCases, projectId, error } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") || "sample-project-id";
   const statusFilter = searchParams.get("status") as RevisionStatus | null;
-
-  const { testCases, isLoading, error, reload } = useTestCase(projectId);
 
   // ステータスでフィルタリング
   const filteredTestCases = statusFilter
-    ? testCases.filter((item) => item.latestRevision.status === statusFilter)
+    ? testCases.filter((item) => item.latestRevision?.status === statusFilter)
     : testCases;
 
   const handleStatusFilterChange = (value: string) => {
@@ -97,26 +123,27 @@ export default function TestCasesPage() {
       {/* エラー表示 */}
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-800">{error.message}</p>
-          <Button variant="outline" size="sm" onClick={reload} className="mt-2">
-            再読み込み
-          </Button>
+          <p className="text-sm text-red-800">{error}</p>
+          <Link to={`/test-cases?projectId=${projectId}`}>
+            <Button variant="outline" size="sm" className="mt-2">
+              再読み込み
+            </Button>
+          </Link>
         </div>
       )}
 
       {/* テストケース一覧 */}
       <TestCaseList
-        items={filteredTestCases}
-        isLoading={isLoading}
-        emptyMessage={
-          statusFilter
-            ? "条件に一致するテストケースがありません"
-            : "テストケースがありません。新規作成から始めましょう。"
-        }
+        testCases={filteredTestCases}
+        onSelect={(testCase) => {
+          const tc =
+            "testCase" in testCase ? testCase.testCase : testCase;
+          window.location.href = `/test-cases/${tc.id}`;
+        }}
       />
 
       {/* 統計情報 */}
-      {!isLoading && testCases.length > 0 && (
+      {testCases.length > 0 && (
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <div className="rounded-lg border bg-card p-4">
             <div className="text-sm text-muted-foreground">総数</div>
@@ -127,7 +154,7 @@ export default function TestCasesPage() {
             <div className="mt-1 text-2xl font-bold">
               {
                 testCases.filter(
-                  (item) => item.latestRevision.status === "IN_REVIEW",
+                  (item) => item.latestRevision?.status === "IN_REVIEW",
                 ).length
               }
             </div>
@@ -137,7 +164,7 @@ export default function TestCasesPage() {
             <div className="mt-1 text-2xl font-bold">
               {
                 testCases.filter(
-                  (item) => item.latestRevision.status === "APPROVED",
+                  (item) => item.latestRevision?.status === "APPROVED",
                 ).length
               }
             </div>

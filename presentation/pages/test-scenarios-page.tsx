@@ -1,6 +1,49 @@
-import { Link, useSearchParams } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import {
+  Link,
+  useLoaderData,
+  useActionData,
+  redirect,
+  data,
+} from "react-router";
 import { Plus, List } from "lucide-react";
 import { Button } from "~/components/ui/button";
+
+/**
+ * ローダー関数：テストシナリオ一覧を取得
+ */
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const projectId = url.searchParams.get("projectId") || "sample-project-id";
+
+  // TODO: テストシナリオ取得ロジックを実装
+  // 現在はプレースホルダーとして空配列を返す
+  try {
+    const scenarios: readonly never[] = [];
+    return { scenarios, projectId };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "テストシナリオの取得に失敗しました";
+    return { scenarios: [], projectId, error: errorMessage };
+  }
+}
+
+/**
+ * アクション関数：テストシナリオ作成
+ */
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "create") {
+    // TODO: テストシナリオ作成ロジックを実装
+    return data({ error: "テストシナリオ作成は未実装です" }, { status: 501 });
+  }
+
+  return data({ error: "不明なアクションです" }, { status: 400 });
+}
 
 /**
  * テストシナリオ一覧ページ
@@ -9,11 +52,20 @@ import { Button } from "~/components/ui/button";
  * 新規作成や編集を行う
  */
 export default function TestScenariosPage() {
-  const [searchParams] = useSearchParams();
-  const projectId = searchParams.get("projectId") || "sample-project-id";
+  const { scenarios, projectId, error } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
 
   return (
     <div className="container mx-auto py-8">
+      {/* エラー表示 */}
+      {(error || (actionData && "error" in actionData)) && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-800">
+            {error || (actionData && "error" in actionData && actionData.error)}
+          </p>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <div className="mb-8">
         <div className="flex items-center justify-between">

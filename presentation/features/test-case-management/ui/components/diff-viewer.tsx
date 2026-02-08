@@ -1,244 +1,420 @@
-import { ArrowRight, Plus, Minus, Equal } from "lucide-react";
 import type { TestCaseRevision } from "../../domain/models/test-case-revision";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Separator } from "~/components/ui/separator";
+import { Badge } from "~/components/ui/badge";
+import { RevisionStatusLabels } from "../../domain/models/revision-status";
+import { TestCasePriorityLabels } from "../../domain/models/test-case-content";
+import { Plus, Minus, FileText } from "lucide-react";
+import { cn } from "~/lib/utils";
 
-/**
- * DiffViewerのProps
- */
-type DiffViewerProps = {
-  /**
-   * 比較元のリビジョン
-   */
-  oldRevision: TestCaseRevision;
-
-  /**
-   * 比較先のリビジョン
-   */
-  newRevision: TestCaseRevision;
+export type DiffViewerProps = {
+  readonly oldRevision: TestCaseRevision | null;
+  readonly newRevision: TestCaseRevision | null;
 };
 
 /**
- * 差分の種類
- */
-type DiffType = "added" | "removed" | "changed" | "unchanged";
-
-/**
- * 差分情報
- */
-type DiffItem = {
-  type: DiffType;
-  label: string;
-  oldValue?: string | readonly string[];
-  newValue?: string | readonly string[];
-};
-
-/**
- * 2つのリビジョン間の差分を計算
- */
-function calculateDiff(
-  oldRevision: TestCaseRevision,
-  newRevision: TestCaseRevision,
-): DiffItem[] {
-  const diffs: DiffItem[] = [];
-
-  // タイトルの比較
-  if (oldRevision.title !== newRevision.title) {
-    diffs.push({
-      type: "changed",
-      label: "タイトル",
-      oldValue: oldRevision.title,
-      newValue: newRevision.title,
-    });
-  }
-
-  // ステップの比較
-  const oldSteps = oldRevision.content.steps;
-  const newSteps = newRevision.content.steps;
-
-  if (JSON.stringify(oldSteps) !== JSON.stringify(newSteps)) {
-    diffs.push({
-      type: "changed",
-      label: "テスト手順",
-      oldValue: oldSteps,
-      newValue: newSteps,
-    });
-  }
-
-  // 期待結果の比較
-  if (
-    oldRevision.content.expected_result !== newRevision.content.expected_result
-  ) {
-    diffs.push({
-      type: "changed",
-      label: "期待結果",
-      oldValue: oldRevision.content.expected_result,
-      newValue: newRevision.content.expected_result,
-    });
-  }
-
-  // 前提条件の比較
-  if (oldRevision.content.preconditions !== newRevision.content.preconditions) {
-    diffs.push({
-      type: "changed",
-      label: "前提条件",
-      oldValue: oldRevision.content.preconditions || "(なし)",
-      newValue: newRevision.content.preconditions || "(なし)",
-    });
-  }
-
-  // 優先度の比較
-  if (oldRevision.content.priority !== newRevision.content.priority) {
-    diffs.push({
-      type: "changed",
-      label: "優先度",
-      oldValue: oldRevision.content.priority || "(未設定)",
-      newValue: newRevision.content.priority || "(未設定)",
-    });
-  }
-
-  // タグの比較
-  const oldTags = oldRevision.content.tags || [];
-  const newTags = newRevision.content.tags || [];
-
-  if (JSON.stringify(oldTags) !== JSON.stringify(newTags)) {
-    diffs.push({
-      type: "changed",
-      label: "タグ",
-      oldValue: oldTags.join(", ") || "(なし)",
-      newValue: newTags.join(", ") || "(なし)",
-    });
-  }
-
-  return diffs;
-}
-
-/**
- * DiffViewerコンポーネント
+ * リビジョン差分表示コンポーネント
  *
- * 2つのリビジョン間の差分を視覚的に表示する
+ * 2つのリビジョンを比較し、変更内容を視覚的に表示します。
+ *
+ * @example
+ * ```tsx
+ * <DiffViewer
+ *   oldRevision={oldRev}
+ *   newRevision={newRev}
+ * />
+ * ```
  */
 export function DiffViewer({ oldRevision, newRevision }: DiffViewerProps) {
-  const diffs = calculateDiff(oldRevision, newRevision);
-
-  if (diffs.length === 0) {
+  // 新規作成の場合
+  if (!oldRevision && newRevision) {
     return (
-      <div className="rounded-lg border border-border bg-muted p-6 text-center">
-        <Equal className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-        <p className="text-muted-foreground">変更はありません</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="size-5 text-green-600" />
+            新規作成
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h4 className="mb-2 text-sm font-medium">タイトル</h4>
+              <div className="rounded-md bg-green-50 p-3 text-green-900">
+                <Plus className="mr-2 inline size-4" />
+                {newRevision.title}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="mb-2 text-sm font-medium">ステータス</h4>
+              <Badge className="bg-green-100 text-green-800">
+                {RevisionStatusLabels[newRevision.status]}
+              </Badge>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="mb-2 text-sm font-medium">テスト手順</h4>
+              <div className="space-y-2">
+                {newRevision.content.steps.map((step) => (
+                  <div
+                    key={step.stepNumber}
+                    className="rounded-md bg-green-50 p-3 text-sm text-green-900"
+                  >
+                    <Plus className="mr-2 inline size-4" />
+                    <strong>ステップ{step.stepNumber}:</strong> {step.action} →{" "}
+                    {step.expectedOutcome}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="mb-2 text-sm font-medium">期待結果</h4>
+              <div className="rounded-md bg-green-50 p-3 text-green-900">
+                <Plus className="mr-2 inline size-4" />
+                {newRevision.content.expectedResult}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h4 className="mb-2 text-sm font-medium">タグ</h4>
+              <div className="flex flex-wrap gap-2">
+                {newRevision.content.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="bg-green-50 text-green-800"
+                  >
+                    <Plus className="mr-1 size-3" />
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="mb-2 text-sm font-medium">優先度</h4>
+                <Badge className="bg-green-100 text-green-800">
+                  {TestCasePriorityLabels[newRevision.content.priority]}
+                </Badge>
+              </div>
+              <div>
+                <h4 className="mb-2 text-sm font-medium">環境</h4>
+                <Badge className="bg-green-100 text-green-800">
+                  {newRevision.content.environment}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between rounded-lg border bg-muted p-4">
-        <div className="flex items-center gap-4">
-          <div className="text-sm">
-            <span className="font-semibold">Rev {oldRevision.rev}</span>
-            <span className="text-muted-foreground"> から </span>
-            <span className="font-semibold">Rev {newRevision.rev}</span>
-          </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="text-sm text-muted-foreground">
-          {diffs.length} 件の変更
-        </div>
-      </div>
+  // 比較表示
+  if (oldRevision && newRevision) {
+    const titleChanged = oldRevision.title !== newRevision.title;
+    const statusChanged = oldRevision.status !== newRevision.status;
+    const expectedResultChanged =
+      oldRevision.content.expectedResult !== newRevision.content.expectedResult;
+    const priorityChanged =
+      oldRevision.content.priority !== newRevision.content.priority;
+    const environmentChanged =
+      oldRevision.content.environment !== newRevision.content.environment;
 
-      {/* 差分リスト */}
-      <div className="space-y-4">
-        {diffs.map((diff, index) => (
-          <div
-            key={index}
-            className="rounded-lg border border-border bg-background"
-          >
-            <div className="border-b border-border bg-muted px-4 py-2">
-              <h4 className="flex items-center gap-2 text-sm font-semibold">
-                {diff.type === "added" && (
-                  <Plus className="h-4 w-4 text-green-600" />
-                )}
-                {diff.type === "removed" && (
-                  <Minus className="h-4 w-4 text-red-600" />
-                )}
-                {diff.type === "changed" && (
-                  <ArrowRight className="h-4 w-4 text-orange-600" />
-                )}
-                {diff.label}
-              </h4>
+    // タグの差分
+    const oldTags = new Set(oldRevision.content.tags);
+    const newTags = new Set(newRevision.content.tags);
+    const addedTags = [...newTags].filter((tag) => !oldTags.has(tag));
+    const removedTags = [...oldTags].filter((tag) => !newTags.has(tag));
+
+    // ステップの差分（簡易版）
+    const oldStepsText = oldRevision.content.steps
+      .map((s) => `${s.action}|${s.expectedOutcome}`)
+      .join("\n");
+    const newStepsText = newRevision.content.steps
+      .map((s) => `${s.action}|${s.expectedOutcome}`)
+      .join("\n");
+    const stepsChanged = oldStepsText !== newStepsText;
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="size-5" />
+            リビジョン比較: rev.{oldRevision.rev} → rev.{newRevision.rev}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* タイトル */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">タイトル</h4>
+              {titleChanged ? (
+                <div className="space-y-2">
+                  <div className="rounded-md bg-red-50 p-3 text-red-900">
+                    <Minus className="mr-2 inline size-4" />
+                    {oldRevision.title}
+                  </div>
+                  <div className="rounded-md bg-green-50 p-3 text-green-900">
+                    <Plus className="mr-2 inline size-4" />
+                    {newRevision.title}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md bg-muted p-3 text-muted-foreground">
+                  {newRevision.title}
+                </div>
+              )}
             </div>
 
-            <div className="p-4">
-              {/* 配列の差分表示 */}
-              {Array.isArray(diff.oldValue) && Array.isArray(diff.newValue) ? (
+            <Separator />
+
+            {/* ステータス */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">ステータス</h4>
+              {statusChanged ? (
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-red-100 text-red-800">
+                    <Minus className="mr-1 size-3" />
+                    {RevisionStatusLabels[oldRevision.status]}
+                  </Badge>
+                  <span>→</span>
+                  <Badge className="bg-green-100 text-green-800">
+                    <Plus className="mr-1 size-3" />
+                    {RevisionStatusLabels[newRevision.status]}
+                  </Badge>
+                </div>
+              ) : (
+                <Badge variant="outline">
+                  {RevisionStatusLabels[newRevision.status]}
+                </Badge>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* テスト手順 */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">テスト手順</h4>
+              {stepsChanged ? (
                 <div className="space-y-4">
-                  {/* 削除された項目 */}
-                  {diff.oldValue.length > 0 && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-red-600">
-                        削除:
-                      </div>
-                      <div className="space-y-1 rounded bg-red-50 p-3">
-                        {diff.oldValue.map((item, i) => (
-                          <div
-                            key={i}
-                            className="flex items-start gap-2 text-sm text-red-700"
-                          >
-                            <Minus className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                            <span>{item}</span>
-                          </div>
-                        ))}
-                      </div>
+                  <div>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      変更前 (rev.{oldRevision.rev})
+                    </p>
+                    <div className="space-y-2">
+                      {oldRevision.content.steps.map((step) => (
+                        <div
+                          key={step.stepNumber}
+                          className="rounded-md bg-red-50 p-3 text-sm text-red-900"
+                        >
+                          <Minus className="mr-2 inline size-4" />
+                          <strong>ステップ{step.stepNumber}:</strong>{" "}
+                          {step.action} → {step.expectedOutcome}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      変更後 (rev.{newRevision.rev})
+                    </p>
+                    <div className="space-y-2">
+                      {newRevision.content.steps.map((step) => (
+                        <div
+                          key={step.stepNumber}
+                          className="rounded-md bg-green-50 p-3 text-sm text-green-900"
+                        >
+                          <Plus className="mr-2 inline size-4" />
+                          <strong>ステップ{step.stepNumber}:</strong>{" "}
+                          {step.action} → {step.expectedOutcome}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {newRevision.content.steps.map((step) => (
+                    <div
+                      key={step.stepNumber}
+                      className="rounded-md bg-muted p-3 text-sm"
+                    >
+                      <strong>ステップ{step.stepNumber}:</strong> {step.action}{" "}
+                      → {step.expectedOutcome}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* 期待結果 */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">期待結果</h4>
+              {expectedResultChanged ? (
+                <div className="space-y-2">
+                  <div className="rounded-md bg-red-50 p-3 text-red-900">
+                    <Minus className="mr-2 inline size-4" />
+                    {oldRevision.content.expectedResult}
+                  </div>
+                  <div className="rounded-md bg-green-50 p-3 text-green-900">
+                    <Plus className="mr-2 inline size-4" />
+                    {newRevision.content.expectedResult}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md bg-muted p-3 text-muted-foreground">
+                  {newRevision.content.expectedResult}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* タグ */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">タグ</h4>
+              {addedTags.length > 0 || removedTags.length > 0 ? (
+                <div className="space-y-2">
+                  {removedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {removedTags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className="bg-red-50 text-red-800"
+                        >
+                          <Minus className="mr-1 size-3" />
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
                   )}
-
-                  {/* 追加された項目 */}
-                  {diff.newValue.length > 0 && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-green-600">
-                        追加:
-                      </div>
-                      <div className="space-y-1 rounded bg-green-50 p-3">
-                        {diff.newValue.map((item, i) => (
-                          <div
-                            key={i}
-                            className="flex items-start gap-2 text-sm text-green-700"
-                          >
-                            <Plus className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                            <span>{item}</span>
-                          </div>
+                  {addedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {addedTags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className="bg-green-50 text-green-800"
+                        >
+                          <Plus className="mr-1 size-3" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {[...newTags].filter(
+                    (tag) => !addedTags.includes(tag) && !removedTags.includes(tag)
+                  ).length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {[...newTags]
+                        .filter(
+                          (tag) =>
+                            !addedTags.includes(tag) &&
+                            !removedTags.includes(tag),
+                        )
+                        .map((tag) => (
+                          <Badge key={tag} variant="outline">
+                            {tag}
+                          </Badge>
                         ))}
-                      </div>
                     </div>
                   )}
                 </div>
               ) : (
-                /* 文字列の差分表示 */
-                <div className="space-y-3">
-                  {/* 変更前 */}
-                  <div className="space-y-1">
-                    <div className="text-xs font-medium text-red-600">
-                      変更前:
-                    </div>
-                    <div className="rounded bg-red-50 p-3 text-sm text-red-700">
-                      {diff.oldValue || "(空)"}
-                    </div>
-                  </div>
-
-                  {/* 変更後 */}
-                  <div className="space-y-1">
-                    <div className="text-xs font-medium text-green-600">
-                      変更後:
-                    </div>
-                    <div className="rounded bg-green-50 p-3 text-sm text-green-700">
-                      {diff.newValue || "(空)"}
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {newRevision.content.tags.map((tag) => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
+
+            <Separator />
+
+            {/* 優先度と環境 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="mb-2 text-sm font-medium">優先度</h4>
+                {priorityChanged ? (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-800">
+                      <Minus className="mr-1 size-3" />
+                      {TestCasePriorityLabels[oldRevision.content.priority]}
+                    </Badge>
+                    <span>→</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      <Plus className="mr-1 size-3" />
+                      {TestCasePriorityLabels[newRevision.content.priority]}
+                    </Badge>
+                  </div>
+                ) : (
+                  <Badge variant="outline">
+                    {TestCasePriorityLabels[newRevision.content.priority]}
+                  </Badge>
+                )}
+              </div>
+              <div>
+                <h4 className="mb-2 text-sm font-medium">環境</h4>
+                {environmentChanged ? (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-800">
+                      <Minus className="mr-1 size-3" />
+                      {oldRevision.content.environment}
+                    </Badge>
+                    <span>→</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      <Plus className="mr-1 size-3" />
+                      {newRevision.content.environment}
+                    </Badge>
+                  </div>
+                ) : (
+                  <Badge variant="outline">
+                    {newRevision.content.environment}
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // どちらもnullの場合
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>リビジョン比較</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          比較するリビジョンを選択してください
+        </p>
+      </CardContent>
+    </Card>
   );
 }

@@ -10,7 +10,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
-import { TestScenarioCaseRef } from "../../domain/models/test-scenario-revision";
+import { TestScenarioItem } from "../../domain/models/test-scenario-revision";
 
 /**
  * テストシナリオビルダーのProps
@@ -29,7 +29,7 @@ type TestScenarioBuilderProps = {
   /**
    * テストケースのリスト
    */
-  testCases: readonly TestScenarioCaseRef[];
+  testCases: readonly TestScenarioItem[];
 
   /**
    * タイトル変更時のコールバック
@@ -44,7 +44,7 @@ type TestScenarioBuilderProps = {
   /**
    * テストケース追加時のコールバック
    */
-  onAddTestCase: (testCase: TestScenarioCaseRef) => void;
+  onAddTestCase: (testCase: TestScenarioItem) => void;
 
   /**
    * テストケース削除時のコールバック
@@ -54,7 +54,7 @@ type TestScenarioBuilderProps = {
   /**
    * テストケース順序変更時のコールバック
    */
-  onReorderTestCases: (testCases: readonly TestScenarioCaseRef[]) => void;
+  onReorderTestCases: (testCases: readonly TestScenarioItem[]) => void;
 
   /**
    * 読み取り専用モード
@@ -84,10 +84,10 @@ export function TestScenarioBuilder({
   const handleAddCase = () => {
     if (!newCaseId.trim()) return;
 
-    const newCase = new TestScenarioCaseRef({
-      caseId: newCaseId.trim(),
-      revisionNumber: Number.parseInt(newRevNumber, 10) || 1,
+    const newCase = new TestScenarioItem({
+      caseRevisionId: newCaseId.trim(),
       order: testCases.length + 1,
+      optionalFlag: false,
     });
 
     onAddTestCase(newCase);
@@ -105,10 +105,12 @@ export function TestScenarioBuilder({
     ];
 
     // order を再計算
-    const reordered = newTestCases.map((tc, i) => ({
-      ...tc,
-      order: i + 1,
-    }));
+    const reordered = newTestCases.map((tc, i) =>
+      new TestScenarioItem({
+        ...tc,
+        order: i + 1,
+      }),
+    );
 
     onReorderTestCases(reordered);
   };
@@ -123,10 +125,12 @@ export function TestScenarioBuilder({
     ];
 
     // order を再計算
-    const reordered = newTestCases.map((tc, i) => ({
-      ...tc,
-      order: i + 1,
-    }));
+    const reordered = newTestCases.map((tc, i) =>
+      new TestScenarioItem({
+        ...tc,
+        order: i + 1,
+      }),
+    );
 
     onReorderTestCases(reordered);
   };
@@ -205,7 +209,7 @@ export function TestScenarioBuilder({
           <div className="space-y-2">
             {testCases.map((testCase, index) => (
               <div
-                key={`${testCase.caseId}-${index}`}
+                key={`${testCase.caseRevisionId}-${index}`}
                 className="flex items-center gap-2 rounded-lg border p-3"
               >
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -213,9 +217,9 @@ export function TestScenarioBuilder({
                   {index + 1}.
                 </span>
                 <div className="flex-1">
-                  <div className="font-medium">{testCase.caseId}</div>
+                  <div className="font-medium">{testCase.caseRevisionId}</div>
                   <div className="text-xs text-muted-foreground">
-                    Rev {testCase.revisionNumber}
+                    {testCase.optionalFlag ? "オプション" : "必須"}
                   </div>
                 </div>
 

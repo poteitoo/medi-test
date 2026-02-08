@@ -9,43 +9,68 @@ import { submitForReviewSchema } from "~/lib/schemas/test-case";
  * POST /api/test-cases/revisions/:revisionId/submit-for-review
  *
  * リビジョンをレビューに提出
+ *
+ * パスパラメータ:
+ * - revisionId: リビジョンID
+ *
+ * リクエストボディ:
+ * - submittedBy: 提出者のユーザーID
+ *
+ * @example
+ * POST /api/test-cases/revisions/uuid/submit-for-review
+ * ```json
+ * {
+ *   "submittedBy": "uuid"
+ * }
+ * ```
  */
-export async function action({ params }: ActionFunctionArgs) {
+export async function action({ params, request }: ActionFunctionArgs) {
   try {
     const { revisionId } = params;
 
     if (!revisionId) {
-      return data({ error: "revisionId is required" }, { status: 400 });
+      return data(
+        { error: "revisionIdは必須パラメータです" },
+        { status: 400 },
+      );
     }
 
+    const body = await request.json();
+
     // バリデーション
-    const validation = submitForReviewSchema.safeParse({ revisionId });
+    const validation = submitForReviewSchema.safeParse({
+      revisionId,
+      submittedBy: body.submittedBy,
+    });
 
     if (!validation.success) {
       return data(
         {
-          error: "Validation failed",
+          error: "バリデーションに失敗しました",
           details: validation.error.flatten().fieldErrors,
         },
         { status: 400 },
       );
     }
 
-    const program = submitForReview({ revisionId }).pipe(
-      Effect.provide(TestCaseManagementLayer),
-    );
+    const validatedData = validation.data;
+
+    const program = submitForReview(
+      validatedData.revisionId,
+      validatedData.submittedBy,
+    ).pipe(Effect.provide(TestCaseManagementLayer));
 
     const revision = await Effect.runPromise(program);
 
     return data({
       data: revision,
-      message: "Revision submitted for review successfully",
+      message: "リビジョンがレビューに提出されました",
     });
   } catch (error) {
     console.error("Failed to submit for review:", error);
     return data(
       {
-        error: "Failed to submit for review",
+        error: "レビュー提出に失敗しました",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },

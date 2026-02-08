@@ -4,23 +4,45 @@ import { Effect } from "effect";
 import { TestCaseManagementLayer } from "~/features/test-case-management/infrastructure/layers/test-case-layer";
 import { getTestCaseRevisionHistory } from "~/features/test-case-management/application/usecases/get-revision-history";
 import { createTestCaseRevision } from "~/features/test-case-management/application/usecases/create-test-case-revision";
-import { TestCaseContent } from "~/features/test-case-management/domain/models/test-case-content";
+import {
+  TestCaseContent,
+  TestStep,
+} from "~/features/test-case-management/domain/models/test-case-content";
 import { createTestCaseRevisionSchema } from "~/lib/schemas/test-case";
 
 /**
  * GET /api/test-cases/:caseId/revisions
  *
  * テストケースのリビジョン履歴を取得
+ *
+ * パスパラメータ:
+ * - caseId: テストケースのstable ID
+ *
+ * クエリパラメータ:
+ * - limit (optional): 取得する最大件数
+ * - offset (optional): スキップする件数
+ *
+ * @example
+ * GET /api/test-cases/uuid/revisions?limit=10&offset=0
  */
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   try {
     const { caseId } = params;
 
     if (!caseId) {
-      return data({ error: "caseId is required" }, { status: 400 });
+      return data({ error: "caseIdは必須パラメータです" }, { status: 400 });
     }
 
-    const program = getTestCaseRevisionHistory({ caseId }).pipe(
+    const url = new URL(request.url);
+    const limitParam = url.searchParams.get("limit");
+    const offsetParam = url.searchParams.get("offset");
+
+    const options = {
+      limit: limitParam ? Number(limitParam) : undefined,
+      offset: offsetParam ? Number(offsetParam) : undefined,
+    };
+
+    const program = getTestCaseRevisionHistory(caseId, options).pipe(
       Effect.provide(TestCaseManagementLayer),
     );
 
@@ -30,14 +52,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
       data: revisions,
       meta: {
         count: revisions.length,
+        caseId,
         latest: revisions[0],
+        limit: options.limit,
+        offset: options.offset,
       },
     });
   } catch (error) {
     console.error("Failed to fetch revisions:", error);
     return data(
       {
-        error: "Failed to fetch revisions",
+        error: "リビジョン履歴の取得に失敗しました",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
@@ -49,13 +74,38 @@ export async function loader({ params }: LoaderFunctionArgs) {
  * POST /api/test-cases/:caseId/revisions
  *
  * 新しいリビジョンを作成
+ *
+ * パスパラメータ:
+ * - caseId: テストケースのstable ID
+ *
+ * リクエストボディ:
+ * - title: テストケースのタイトル
+ * - content: テストケースの内容
+ * - reason: リビジョン作成理由（必須）
+ * - createdBy: 作成者のユーザーID
+ *
+ * @example
+ * ```json
+ * {
+ *   "title": "ログイン機能のテスト（更新版）",
+ *   "content": {
+ *     "steps": [...],
+ *     "expectedResult": "...",
+ *     "tags": ["認証"],
+ *     "priority": "HIGH",
+ *     "environment": "staging"
+ *   },
+ *   "reason": "テスト手順を3ステップに詳細化",
+ *   "createdBy": "uuid"
+ * }
+ * ```
  */
 export async function action({ params, request }: ActionFunctionArgs) {
   try {
     const { caseId } = params;
 
     if (!caseId) {
-      return data({ error: "caseId is required" }, { status: 400 });
+      return data({ error: "caseIdは必須パラメータです" }, { status: 400 });
     }
 
     const body = await request.json();
@@ -69,7 +119,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     if (!validation.success) {
       return data(
         {
-          error: "Validation failed",
+          error: "バリデーションに失敗しました",
           details: validation.error.flatten().fieldErrors,
         },
         { status: 400 },
@@ -77,15 +127,25 @@ export async function action({ params, request }: ActionFunctionArgs) {
     }
 
     const validatedData = validation.data;
-    const title = validatedData.title;
-    const content = validatedData.content;
-    const createdBy = validatedData.createdBy;
 
-    const program = createTestCaseRevision({
-      caseId,
-      title,
-      content: new TestCaseContent(content),
-      createdBy,
+    // TestStepインスタンスに変換
+    const steps = validatedData.content.steps.map(
+      (step) =>
+        new TestStep({
+          stepNumber: step.stepNumber,
+          action: step.action,
+          expectedOutcome: step.expectedOutcome,
+        }),
+    );
+
+    const program = createTestCaseRevision(caseId, {
+      title: validatedData.title,
+      content: new TestCaseContent({
+        ...validatedData.content,
+        steps,
+      }),
+      reason: validatedData.reason,
+      createdBy: validatedData.createdBy,
     }).pipe(Effect.provide(TestCaseManagementLayer));
 
     const revision = await Effect.runPromise(program);
@@ -93,7 +153,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     return data(
       {
         data: revision,
-        message: "Revision created successfully",
+        message: "リビジョンが作成されました",
       },
       { status: 201 },
     );
@@ -101,7 +161,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     console.error("Failed to create revision:", error);
     return data(
       {
-        error: "Failed to create revision",
+        error: "リビジョンの作成に失敗しました",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },

@@ -1,15 +1,94 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
+import {
+  useParams,
+  Link,
+  useLoaderData,
+  useActionData,
+  redirect,
+  data,
+  Form,
+} from "react-router";
 import { ArrowLeft, GitBranch, Edit, Send } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { TestCaseEditor } from "~/features/test-case-management/ui/components/test-case-editor";
 import { RevisionHistory } from "~/features/test-case-management/ui/components/revision-history";
 import { DiffViewer } from "~/features/test-case-management/ui/components/diff-viewer";
-import { useTestCaseDetail } from "~/features/test-case-management/ui/hooks/use-test-case";
-import { useRevisionManagement } from "~/features/test-case-management/ui/hooks/use-revision-management";
+import {
+  executeGetRevisionHistory,
+  executeSubmitForReview,
+  executeCreateRevision,
+} from "~/features/test-case-management/ui/adapters/test-case-adapter";
 import { TestCaseStatusBadge } from "~/components/ui/status-badge";
-import type { TestCaseContent } from "~/features/test-case-management/domain/models/test-case-content";
+import type { TestCaseRevision } from "~/features/test-case-management/domain/models/test-case-revision";
+import { submitForReviewSchema } from "~/lib/schemas/test-case";
+
+/**
+ * ローダー関数：テストケースのリビジョン履歴を取得
+ */
+export async function loader({ params }: LoaderFunctionArgs) {
+  const { caseId } = params;
+
+  if (!caseId) {
+    throw new Response("テストケースIDが指定されていません", { status: 400 });
+  }
+
+  try {
+    const revisions = await executeGetRevisionHistory(caseId);
+
+    if (!revisions || revisions.length === 0) {
+      throw new Response("テストケースが見つかりません", { status: 404 });
+    }
+
+    return { revisions, caseId };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "テストケースの取得に失敗しました";
+    throw new Response(errorMessage, { status: 500 });
+  }
+}
+
+/**
+ * アクション関数：リビジョン操作（レビュー提出、新規リビジョン作成）
+ */
+export async function action({ request, params }: ActionFunctionArgs) {
+  const { caseId } = params;
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "submit-for-review") {
+    const revisionId = formData.get("revisionId") as string;
+    const submittedBy = formData.get("submittedBy") as string;
+
+    const validation = submitForReviewSchema.safeParse({
+      revisionId,
+      submittedBy,
+    });
+
+    if (!validation.success) {
+      return data(
+        { errors: validation.error.flatten().fieldErrors },
+        { status: 400 },
+      );
+    }
+
+    try {
+      await executeSubmitForReview(revisionId, submittedBy);
+      return redirect(`/test-cases/${caseId}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "レビュー提出に失敗しました";
+      return data({ error: errorMessage }, { status: 500 });
+    }
+  }
+
+  return data({ error: "不明なアクションです" }, { status: 400 });
+}
 
 /**
  * テストケース詳細ページ
@@ -17,11 +96,9 @@ import type { TestCaseContent } from "~/features/test-case-management/domain/mod
  * テストケースの詳細情報、リビジョン履歴、差分表示を行う
  */
 export default function TestCaseDetailPage() {
-  const { caseId } = useParams();
-  const { revisions, isLoading, error, reload } = useTestCaseDetail(
-    caseId || "",
-  );
-  const { submitReview, isSubmitting } = useRevisionManagement();
+  const { revisions, caseId } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+  const { caseId: paramsCaseId } = useParams();
 
   const [selectedRevisionId, setSelectedRevisionId] = useState<
     string | undefined
@@ -35,46 +112,15 @@ export default function TestCaseDetailPage() {
     revisions.find((r) => r.id === selectedRevisionId) || latestRevision;
   const compareRevision = revisions.find((r) => r.id === compareRevisionId);
 
-  const handleSubmitForReview = async () => {
-    if (!latestRevision) return;
-
-    try {
-      await submitReview(latestRevision.id);
-      reload();
-    } catch (err) {
-      console.error("レビュー提出エラー:", err);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">読み込み中...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !latestRevision) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-          <p className="text-red-800">
-            {error?.message || "テストケースが見つかりません"}
-          </p>
-          <Link to="/test-cases">
-            <Button variant="outline" className="mt-4">
-              一覧に戻る
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-8">
+      {/* エラー表示 */}
+      {actionData && "error" in actionData && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-800">{actionData.error}</p>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <div className="mb-8">
         <Link
@@ -99,10 +145,23 @@ export default function TestCaseDetailPage() {
 
           <div className="flex items-center gap-2">
             {latestRevision.status === "DRAFT" && (
-              <Button onClick={handleSubmitForReview} disabled={isSubmitting}>
-                <Send className="mr-2 h-4 w-4" />
-                レビューに提出
-              </Button>
+              <Form method="post">
+                <input type="hidden" name="intent" value="submit-for-review" />
+                <input
+                  type="hidden"
+                  name="revisionId"
+                  value={latestRevision.id}
+                />
+                <input
+                  type="hidden"
+                  name="submittedBy"
+                  value="current-user-id"
+                />
+                <Button type="submit">
+                  <Send className="mr-2 h-4 w-4" />
+                  レビューに提出
+                </Button>
+              </Form>
             )}
             <Link to={`/test-cases/${caseId}/edit`}>
               <Button variant="outline">
@@ -129,11 +188,9 @@ export default function TestCaseDetailPage() {
         <TabsContent value="content">
           <div className="rounded-lg border bg-card p-6">
             <TestCaseEditor
-              title={selectedRevision.title}
-              content={selectedRevision.content}
-              onTitleChange={() => {}}
-              onContentChange={() => {}}
-              readOnly
+              initialContent={selectedRevision.content}
+              onSave={() => {}}
+              disabled
             />
           </div>
         </TabsContent>
@@ -143,8 +200,7 @@ export default function TestCaseDetailPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             <RevisionHistory
               revisions={revisions}
-              selectedRevisionId={selectedRevisionId}
-              onRevisionSelect={setSelectedRevisionId}
+              onSelectRevision={(revision) => setSelectedRevisionId(revision.id)}
             />
 
             {selectedRevision && (
@@ -166,11 +222,9 @@ export default function TestCaseDetailPage() {
                 </div>
                 <div className="rounded-lg border bg-card p-4">
                   <TestCaseEditor
-                    title={selectedRevision.title}
-                    content={selectedRevision.content}
-                    onTitleChange={() => {}}
-                    onContentChange={() => {}}
-                    readOnly
+                    initialContent={selectedRevision.content}
+                    onSave={() => {}}
+                    disabled
                   />
                 </div>
               </div>

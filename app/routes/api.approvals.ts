@@ -2,95 +2,100 @@ import type { ActionFunctionArgs } from "react-router";
 import { data } from "react-router";
 import { Effect, Layer } from "effect";
 import { PrismaLayer } from "@shared/db/layers/prisma-layer";
-import { TestCaseManagementLayer } from "~/features/test-case-management/infrastructure/layers/test-case-layer";
 import { PrismaApprovalServiceLive } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
-import { approveRevision } from "~/features/approval-workflow/application/usecases/approve-revision";
-import { rejectRevision } from "~/features/approval-workflow/application/usecases/reject-revision";
-import { z } from "zod";
+import { ApprovalService } from "~/features/approval-workflow/application/ports/approval-service";
+import { createApprovalSchema } from "~/lib/schemas/approval";
+import type { EvidenceLink } from "~/features/approval-workflow/domain/models/approval";
 
 /**
- * 承認リクエストスキーマ
+ * Approval Layer
  */
-const approvalRequestSchema = z.object({
-  action: z.enum(["approve", "reject"]),
-  revisionId: z.string().uuid(),
-  approverId: z.string().uuid(),
-  comment: z.string().optional(),
-});
-
-/**
- * Approval Layer (Test Case + Approval Service)
- */
-const ApprovalWorkflowLayer = Layer.mergeAll(
-  TestCaseManagementLayer,
-  PrismaApprovalServiceLive,
-).pipe(Layer.provide(PrismaLayer));
+const ApprovalLayer = PrismaApprovalServiceLive.pipe(
+  Layer.provide(PrismaLayer),
+);
 
 /**
  * POST /api/approvals
  *
- * リビジョンを承認または却下
+ * 承認を作成（承認または却下）
+ *
+ * このエンドポイントは汎用的な承認エンドポイントで、
+ * 任意のオブジェクトタイプ（テストケース、シナリオ、リリースなど）の承認を作成できます。
+ *
+ * @example
+ * ```json
+ * {
+ *   "objectType": "CASE_REVISION",
+ *   "objectId": "uuid",
+ *   "step": 1,
+ *   "decision": "APPROVED",
+ *   "approverId": "uuid",
+ *   "comment": "問題ありません",
+ *   "evidenceLinks": [
+ *     { "url": "https://example.com/test", "title": "テスト結果" }
+ *   ]
+ * }
+ * ```
  */
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const body = await request.json();
 
     // バリデーション
-    const validation = approvalRequestSchema.safeParse(body);
+    const validation = createApprovalSchema.safeParse(body);
 
     if (!validation.success) {
       return data(
         {
-          error: "Validation failed",
+          error: "バリデーションに失敗しました",
           details: validation.error.flatten().fieldErrors,
         },
         { status: 400 },
       );
     }
 
-    const { action, revisionId, approverId, comment } = validation.data;
+    const validatedData = validation.data;
 
-    if (action === "approve") {
-      // 承認
-      const program = approveRevision({
-        revisionId,
-        approverId,
-        comment,
-      }).pipe(Effect.provide(ApprovalWorkflowLayer));
-
-      const result = await Effect.runPromise(program);
-
-      return data({
-        data: result,
-        message: "Revision approved successfully",
-      });
-    } else {
-      // 却下
-      if (!comment) {
-        return data(
-          { error: "Comment is required for rejection" },
-          { status: 400 },
-        );
-      }
-
-      const program = rejectRevision({
-        revisionId,
-        approverId,
-        comment,
-      }).pipe(Effect.provide(ApprovalWorkflowLayer));
-
-      const result = await Effect.runPromise(program);
-
-      return data({
-        data: result,
-        message: "Revision rejected successfully",
-      });
+    // 却下の場合、コメントが必須
+    if (validatedData.decision === "REJECTED" && !validatedData.comment) {
+      return data(
+        { error: "却下の場合はコメントが必須です" },
+        { status: 400 },
+      );
     }
-  } catch (error) {
-    console.error("Failed to process approval:", error);
+
+    // 承認を作成
+    const program = Effect.gen(function* () {
+      const approvalService = yield* ApprovalService;
+
+      return yield* approvalService.createApproval({
+        objectType: validatedData.objectType,
+        objectId: validatedData.objectId,
+        step: validatedData.step,
+        decision: validatedData.decision,
+        approverId: validatedData.approverId,
+        comment: validatedData.comment,
+        evidenceLinks: validatedData.evidenceLinks as EvidenceLink[] | undefined,
+      });
+    }).pipe(Effect.provide(ApprovalLayer));
+
+    const approval = await Effect.runPromise(program);
+
     return data(
       {
-        error: "Failed to process approval",
+        data: approval,
+        message:
+          validatedData.decision === "APPROVED"
+            ? "承認が完了しました"
+            : "却下が完了しました",
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("Failed to create approval:", error);
+    return data(
+      {
+        error: "承認の作成に失敗しました",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
