@@ -7,8 +7,626 @@ datasource db {
   provider = "sqlite"
 }
 
+// ============================================
+// 組織・権限
+// ============================================
+
+model Organization {
+  id         String   @id @default(uuid())
+  name       String
+  slug       String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  projects        Project[]
+  users           User[]
+  role_assignments RoleAssignment[]
+
+  @@index([slug])
+}
+
+model Project {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String
+  slug            String
+  description     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  test_cases          TestCase[]
+  test_scenarios      TestScenario[]
+  test_scenario_lists TestScenarioList[]
+  mappings            Mapping[]
+  workflow_definitions WorkflowDefinition[]
+  releases            Release[]
+  requirements        Requirement[]
+  role_assignments    RoleAssignment[]
+  external_integrations ExternalIntegration[]
+
+  @@unique([organization_id, slug])
+  @@index([organization_id])
+  @@index([slug])
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id              String   @id @default(uuid())
+  organization_id String
+  email           String   @unique
+  name            String
+  avatar_url      String?
+  oidc_sub        String?  @unique // OIDC subject identifier
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  role_assignments      RoleAssignment[]
+  created_case_revisions TestCaseRevision[]
+  created_scenario_revisions TestScenarioRevision[]
+  created_list_revisions TestScenarioListRevision[]
+  created_mapping_revisions MappingRevision[]
+  created_workflow_revisions WorkflowRevision[]
+  approvals             Approval[]
+  waivers               Waiver[]
+  assigned_test_runs    TestRun[]
+  executed_test_results TestResult[]
+  audit_logs_as_actor   AuditLog[]
+
+  @@index([organization_id])
+  @@index([email])
+}
+
+enum RoleType {
+  ADMIN
+  QA_MANAGER
+  QA_ENGINEER
+  DEVELOPER
+  PM_PO
+  AUDITOR
+}
+
+model RoleAssignment {
+  id              String   @id @default(uuid())
+  user_id         String
+  organization_id String?
+  project_id      String?
+  role            RoleType
+  created_at      DateTime @default(now())
+
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  project      Project?      @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, organization_id, project_id, role])
+  @@index([user_id])
+  @@index([organization_id])
+  @@index([project_id])
+}
+
+// ============================================
+// 開発統合
+// ============================================
+
+enum ExternalIntegrationType {
+  JIRA
+  GITHUB
+  LINEAR
+}
+
+model ExternalIntegration {
+  id          String                   @id @default(uuid())
+  project_id  String
+  source_type ExternalIntegrationType
+  config      Json // { url, credentials, sync_settings }
+  enabled     Boolean                  @default(true)
+  created_at  DateTime                 @default(now())
+  updated_at  DateTime                 @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, source_type])
+  @@index([project_id])
+}
+
+model Requirement {
+  id          String   @id @default(uuid())
+  project_id  String
+  external_id String   // Jira key, GitHub issue number, Linear ID等
+  source      String   // "jira", "github", "linear"
+  title       String
+  status      String
+  url         String?
+  metadata    Json     // { assignee, labels, priority等 }
+  synced_at   DateTime @default(now())
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  mapping_items MappingItem[]
+
+  @@unique([project_id, source, external_id])
+  @@index([project_id])
+  @@index([external_id])
+}
+
+// ============================================
+// テスト資産 (Versioned)
+// ============================================
+
+// TestCase (stable_id管理)
+model TestCase {
+  id         String   @id @default(uuid()) // stable_id
+  project_id String
+  created_at DateTime @default(now())
+
+  project   Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  revisions TestCaseRevision[]
+
+  @@index([project_id])
+}
+
+enum RevisionStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  DEPRECATED
+}
+
+model TestCaseRevision {
+  id              String         @id @default(uuid())
+  case_stable_id  String
+  rev             Int            // リビジョン番号 (1, 2, 3...)
+  status          RevisionStatus @default(DRAFT)
+  title           String
+  content         Json           // { steps: [...], expected_result: "...", tags: [...], priority: "...", environment: "..." }
+  diff            Json?          // 前リビジョンとの差分
+  reason          String?        // 変更理由
+  created_by      String
+  created_at      DateTime       @default(now())
+
+  test_case TestCase @relation(fields: [case_stable_id], references: [id], onDelete: Cascade)
+  creator   User     @relation(fields: [created_by], references: [id])
+
+  scenario_items   TestScenarioItem[]
+  test_run_items   TestRunItem[]
+  approvals        Approval[]
+
+  @@unique([case_stable_id, rev])
+  @@index([case_stable_id])
+  @@index([status])
+  @@index([created_by])
+}
+
+// TestScenario (stable_id管理)
+model TestScenario {
+  id         String   @id @default(uuid()) // stable_id
+  project_id String
+  created_at DateTime @default(now())
+
+  project   Project                  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  revisions TestScenarioRevision[]
+
+  @@index([project_id])
+}
+
+model TestScenarioRevision {
+  id                  String         @id @default(uuid())
+  scenario_stable_id  String
+  rev                 Int
+  status              RevisionStatus @default(DRAFT)
+  title               String
+  description         String?
+  diff                Json?
+  reason              String?
+  created_by          String
+  created_at          DateTime       @default(now())
+
+  scenario TestScenario @relation(fields: [scenario_stable_id], references: [id], onDelete: Cascade)
+  creator  User         @relation(fields: [created_by], references: [id])
+
+  items        TestScenarioItem[]
+  list_items   TestScenarioListItem[]
+  approvals    Approval[]
+
+  @@unique([scenario_stable_id, rev])
+  @@index([scenario_stable_id])
+  @@index([status])
+  @@index([created_by])
+}
+
+model TestScenarioItem {
+  id                     String @id @default(uuid())
+  scenario_revision_id   String
+  case_revision_id       String
+  order                  Int    // 実行順序
+  optional_flag          Boolean @default(false) // 必須/任意
+  note                   String?
+
+  scenario_revision TestScenarioRevision @relation(fields: [scenario_revision_id], references: [id], onDelete: Cascade)
+  case_revision     TestCaseRevision     @relation(fields: [case_revision_id], references: [id])
+
+  @@unique([scenario_revision_id, order])
+  @@index([scenario_revision_id])
+  @@index([case_revision_id])
+}
+
+// TestScenarioList (stable_id管理)
+model TestScenarioList {
+  id         String   @id @default(uuid()) // stable_id
+  project_id String
+  created_at DateTime @default(now())
+
+  project   Project                      @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  revisions TestScenarioListRevision[]
+
+  @@index([project_id])
+}
+
+model TestScenarioListRevision {
+  id              String         @id @default(uuid())
+  list_stable_id  String
+  rev             Int
+  status          RevisionStatus @default(DRAFT)
+  title           String
+  description     String?
+  diff            Json?
+  reason          String?
+  created_by      String
+  created_at      DateTime       @default(now())
+
+  list    TestScenarioList @relation(fields: [list_stable_id], references: [id], onDelete: Cascade)
+  creator User             @relation(fields: [created_by], references: [id])
+
+  items            TestScenarioListItem[]
+  release_baselines ReleaseBaseline[]
+  test_runs        TestRun[]
+  approvals        Approval[]
+
+  @@unique([list_stable_id, rev])
+  @@index([list_stable_id])
+  @@index([status])
+  @@index([created_by])
+}
+
+model TestScenarioListItem {
+  id                  String  @id @default(uuid())
+  list_revision_id    String
+  scenario_revision_id String
+  order               Int
+  include_rule        Json?   // フィルタルール (タグ条件等)
+
+  list_revision     TestScenarioListRevision @relation(fields: [list_revision_id], references: [id], onDelete: Cascade)
+  scenario_revision TestScenarioRevision     @relation(fields: [scenario_revision_id], references: [id])
+
+  @@unique([list_revision_id, order])
+  @@index([list_revision_id])
+  @@index([scenario_revision_id])
+}
+
+// Mapping (Requirement ↔ Test資産)
+model Mapping {
+  id         String   @id @default(uuid()) // stable_id
+  project_id String
+  created_at DateTime @default(now())
+
+  project   Project           @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  revisions MappingRevision[]
+
+  @@index([project_id])
+}
+
+model MappingRevision {
+  id                 String         @id @default(uuid())
+  mapping_stable_id  String
+  rev                Int
+  status             RevisionStatus @default(DRAFT)
+  diff               Json?
+  reason             String?
+  created_by         String
+  created_at         DateTime       @default(now())
+
+  mapping Mapping @relation(fields: [mapping_stable_id], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [created_by], references: [id])
+
+  items     MappingItem[]
+  approvals Approval[]
+
+  @@unique([mapping_stable_id, rev])
+  @@index([mapping_stable_id])
+  @@index([status])
+  @@index([created_by])
+}
+
+enum MappingTargetType {
+  CASE_REVISION
+  SCENARIO_REVISION
+  LIST_REVISION
+}
+
+model MappingItem {
+  id                   String            @id @default(uuid())
+  mapping_revision_id  String
+  requirement_id       String            // Requirement.id (not external_id)
+  target_type          MappingTargetType
+  target_revision_id   String            // Case/Scenario/List Revision ID
+
+  mapping_revision MappingRevision @relation(fields: [mapping_revision_id], references: [id], onDelete: Cascade)
+  requirement      Requirement     @relation(fields: [requirement_id], references: [id])
+
+  @@unique([mapping_revision_id, requirement_id, target_revision_id])
+  @@index([mapping_revision_id])
+  @@index([requirement_id])
+  @@index([target_revision_id])
+}
+
+// WorkflowDefinition (承認ワークフロー定義)
+model WorkflowDefinition {
+  id         String   @id @default(uuid()) // stable_id
+  project_id String
+  name       String
+  created_at DateTime @default(now())
+
+  project   Project            @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  revisions WorkflowRevision[]
+
+  @@index([project_id])
+}
+
+model WorkflowRevision {
+  id                    String         @id @default(uuid())
+  workflow_stable_id    String
+  rev                   Int
+  status                RevisionStatus @default(DRAFT)
+  config                Json           // { steps: [{ role: "QA_MANAGER", order: 1 }, ...] }
+  diff                  Json?
+  created_by            String
+  created_at            DateTime       @default(now())
+
+  workflow WorkflowDefinition @relation(fields: [workflow_stable_id], references: [id], onDelete: Cascade)
+  creator  User               @relation(fields: [created_by], references: [id])
+
+  @@unique([workflow_stable_id, rev])
+  @@index([workflow_stable_id])
+  @@index([status])
+}
+
+// ============================================
+// リリース・実行
+// ============================================
+
+enum ReleaseStatus {
+  PLANNING
+  EXECUTING
+  GATE_CHECK
+  APPROVED_FOR_RELEASE
+  RELEASED
+}
+
+model Release {
+  id          String        @id @default(uuid())
+  project_id  String
+  name        String
+  description String?
+  status      ReleaseStatus @default(PLANNING)
+  build_ref   String?       // Git SHA, CI build number等
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  baselines      ReleaseBaseline[]
+  test_run_groups TestRunGroup[]
+  waivers        Waiver[]
+  approvals      Approval[]
+
+  @@index([project_id])
+  @@index([status])
+}
+
+model ReleaseBaseline {
+  id                    String   @id @default(uuid())
+  release_id            String
+  source_list_revision_id String
+  created_by            String
+  created_at            DateTime @default(now())
+
+  release      Release                  @relation(fields: [release_id], references: [id], onDelete: Cascade)
+  list_revision TestScenarioListRevision @relation(fields: [source_list_revision_id], references: [id])
+
+  @@unique([release_id, source_list_revision_id])
+  @@index([release_id])
+  @@index([source_list_revision_id])
+}
+
+enum RunGroupStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model TestRunGroup {
+  id          String         @id @default(uuid())
+  release_id  String
+  name        String
+  purpose     String         // "回帰", "ホットフィックス", "環境別"等
+  status      RunGroupStatus @default(NOT_STARTED)
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+
+  release Release @relation(fields: [release_id], references: [id], onDelete: Cascade)
+
+  test_runs TestRun[]
+
+  @@index([release_id])
+  @@index([status])
+}
+
+enum RunStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model TestRun {
+  id                      String    @id @default(uuid())
+  run_group_id            String
+  assignee_user_id        String
+  source_list_revision_id String
+  build_ref               String?
+  status                  RunStatus @default(ASSIGNED)
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  run_group     TestRunGroup             @relation(fields: [run_group_id], references: [id], onDelete: Cascade)
+  assignee      User                     @relation(fields: [assignee_user_id], references: [id])
+  list_revision TestScenarioListRevision @relation(fields: [source_list_revision_id], references: [id])
+
+  items TestRunItem[]
+
+  @@index([run_group_id])
+  @@index([assignee_user_id])
+  @@index([status])
+}
+
+model TestRunItem {
+  id                        String   @id @default(uuid())
+  run_id                    String
+  case_revision_id          String
+  origin_scenario_revision_id String? // 由来シナリオ (任意)
+  order                     Int
+  created_at                DateTime @default(now())
+
+  run           TestRun          @relation(fields: [run_id], references: [id], onDelete: Cascade)
+  case_revision TestCaseRevision @relation(fields: [case_revision_id], references: [id])
+
+  results TestResult[]
+
+  @@unique([run_id, order])
+  @@index([run_id])
+  @@index([case_revision_id])
+}
+
+enum ResultStatus {
+  PASS
+  FAIL
+  BLOCKED
+  SKIPPED
+}
+
+model TestResult {
+  id           String       @id @default(uuid())
+  run_item_id  String
+  status       ResultStatus
+  evidence     Json?        // { logs: "...", screenshots: [...], links: [...] }
+  bug_links    Json?        // [{ url: "...", title: "..." }, ...]
+  executed_by  String
+  executed_at  DateTime     @default(now())
+
+  run_item TestRunItem @relation(fields: [run_item_id], references: [id], onDelete: Cascade)
+  executor User        @relation(fields: [executed_by], references: [id])
+
+  @@index([run_item_id])
+  @@index([status])
+  @@index([executed_by])
+  @@index([executed_at])
+}
+
+// ============================================
+// 承認・例外・監査
+// ============================================
+
+enum ApprovalObjectType {
+  CASE_REVISION
+  SCENARIO_REVISION
+  LIST_REVISION
+  MAPPING_REVISION
+  WORKFLOW_REVISION
+  RELEASE
+  WAIVER
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
+model Approval {
+  id             String             @id @default(uuid())
+  object_type    ApprovalObjectType
+  object_id      String
+  step           Int                // 承認ステップ番号 (1, 2, ...)
+  decision       ApprovalDecision
+  approver_id    String
+  comment        String?
+  evidence_links Json?              // [{ url: "...", title: "..." }, ...]
+  timestamp      DateTime           @default(now())
+
+  approver User    @relation(fields: [approver_id], references: [id])
+  release  Release? @relation(fields: [object_id], references: [id], onDelete: Cascade)
+  case_revision     TestCaseRevision?         @relation(fields: [object_id], references: [id], onDelete: Cascade)
+  scenario_revision TestScenarioRevision?     @relation(fields: [object_id], references: [id], onDelete: Cascade)
+  list_revision     TestScenarioListRevision? @relation(fields: [object_id], references: [id], onDelete: Cascade)
+  mapping_revision  MappingRevision?          @relation(fields: [object_id], references: [id], onDelete: Cascade)
+
+  @@unique([object_type, object_id, step, approver_id])
+  @@index([object_type, object_id])
+  @@index([approver_id])
+  @@index([timestamp])
+}
+
+enum WaiverTargetType {
+  FAIL_RESULT
+  UNAPPROVED_REVISION
+  UNEXECUTED_TEST
+  OTHER
+}
+
+model Waiver {
+  id          String           @id @default(uuid())
+  release_id  String
+  target_type WaiverTargetType
+  target_id   String?          // 対象Result ID, Revision ID等 (任意)
+  reason      String
+  expires_at  DateTime
+  issuer_id   String
+  created_at  DateTime         @default(now())
+
+  release Release @relation(fields: [release_id], references: [id], onDelete: Cascade)
+  issuer  User    @relation(fields: [issuer_id], references: [id])
+
+  @@index([release_id])
+  @@index([expires_at])
+  @@index([issuer_id])
+}
+
+enum AuditEventType {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  ISSUE_WAIVER
+  CHANGE_PERMISSION
+  CHANGE_INTEGRATION
+}
+
+model AuditLog {
+  id          String         @id @default(uuid())
+  event_type  AuditEventType
+  actor_id    String
+  object_type String         // "TestCase", "Release", "User"等
+  object_id   String
+  before      Json?          // 変更前の値
+  after       Json?          // 変更後の値
+  timestamp   DateTime       @default(now())
+
+  actor User @relation(fields: [actor_id], references: [id])
+
+  @@index([actor_id])
+  @@index([object_type, object_id])
+  @@index([timestamp])
 }
