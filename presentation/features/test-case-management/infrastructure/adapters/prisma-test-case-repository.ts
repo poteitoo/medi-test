@@ -105,20 +105,18 @@ const mapContentToJson = (content: TestCaseContentType) => {
  * @param prismaRevision - Prismaの test_case_revision レコード
  * @returns TestCaseRevision ドメインモデル
  */
-const mapPrismaToTestCaseRevision = (
-  prismaRevision: {
-    id: string;
-    case_stable_id: string;
-    rev: number;
-    status: string;
-    title: string;
-    content: unknown;
-    diff: unknown;
-    reason: string | null;
-    created_by: string;
-    created_at: Date;
-  },
-): TestCaseRevision => {
+const mapPrismaToTestCaseRevision = (prismaRevision: {
+  id: string;
+  case_stable_id: string;
+  rev: number;
+  status: string;
+  title: string;
+  content: unknown;
+  diff: unknown;
+  reason: string | null;
+  created_by: string;
+  created_at: Date;
+}): TestCaseRevision => {
   return new TestCaseRevision({
     id: prismaRevision.id,
     caseStableId: prismaRevision.case_stable_id,
@@ -144,13 +142,11 @@ const mapPrismaToTestCaseRevision = (
  * @param prismaTestCase - Prismaの test_case レコード
  * @returns TestCase ドメインモデル
  */
-const mapPrismaToTestCase = (
-  prismaTestCase: {
-    id: string;
-    project_id: string;
-    created_at: Date;
-  },
-): TestCase => {
+const mapPrismaToTestCase = (prismaTestCase: {
+  id: string;
+  project_id: string;
+  created_at: Date;
+}): TestCase => {
   return new TestCase({
     id: prismaTestCase.id,
     projectId: prismaTestCase.project_id,

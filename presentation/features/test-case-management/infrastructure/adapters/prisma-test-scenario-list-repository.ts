@@ -26,19 +26,17 @@ import { InvalidStatusTransitionError } from "../../domain/errors/status-errors"
  * @param prismaItem - Prismaの test_scenario_list_item レコード
  * @returns TestScenarioListItem ドメインモデル
  */
-const mapItemsFromPrisma = (
-  prismaItem: {
-    scenario_revision_id: string;
-    order: number;
-    include_rule: unknown;
-  },
-): TestScenarioListItem => {
+const mapItemsFromPrisma = (prismaItem: {
+  scenario_revision_id: string;
+  order: number;
+  include_rule: unknown;
+}): TestScenarioListItem => {
   // include_ruleはJSON文字列として保存されているので、パースする
   const includeRule =
     prismaItem.include_rule !== null && prismaItem.include_rule !== undefined
-      ? (typeof prismaItem.include_rule === "string"
-          ? prismaItem.include_rule
-          : JSON.stringify(prismaItem.include_rule))
+      ? typeof prismaItem.include_rule === "string"
+        ? prismaItem.include_rule
+        : JSON.stringify(prismaItem.include_rule)
       : undefined;
 
   return new TestScenarioListItem({
@@ -48,7 +46,6 @@ const mapItemsFromPrisma = (
   });
 };
 
-
 /**
  * PrismaのTestScenarioListRevisionをドメインモデルに変換
  *
@@ -57,25 +54,23 @@ const mapItemsFromPrisma = (
  * @param prismaRevision - Prismaの test_scenario_list_revision レコード（items含む）
  * @returns TestScenarioListRevision ドメインモデル
  */
-const mapPrismaToTestScenarioListRevision = (
-  prismaRevision: {
-    id: string;
-    list_stable_id: string;
-    rev: number;
-    status: string;
-    title: string;
-    description: string | null;
-    diff: unknown;
-    reason: string | null;
-    created_by: string;
-    created_at: Date;
-    items: Array<{
-      scenario_revision_id: string;
-      order: number;
-      include_rule: unknown;
-    }>;
-  },
-): TestScenarioListRevision => {
+const mapPrismaToTestScenarioListRevision = (prismaRevision: {
+  id: string;
+  list_stable_id: string;
+  rev: number;
+  status: string;
+  title: string;
+  description: string | null;
+  diff: unknown;
+  reason: string | null;
+  created_by: string;
+  created_at: Date;
+  items: Array<{
+    scenario_revision_id: string;
+    order: number;
+    include_rule: unknown;
+  }>;
+}): TestScenarioListRevision => {
   const items = prismaRevision.items.map(mapItemsFromPrisma);
 
   return new TestScenarioListRevision({
@@ -101,13 +96,11 @@ const mapPrismaToTestScenarioListRevision = (
  * @param prismaTestScenarioList - Prismaの test_scenario_list レコード
  * @returns TestScenarioList ドメインモデル
  */
-const mapPrismaToTestScenarioList = (
-  prismaTestScenarioList: {
-    id: string;
-    project_id: string;
-    created_at: Date;
-  },
-): TestScenarioList => {
+const mapPrismaToTestScenarioList = (prismaTestScenarioList: {
+  id: string;
+  project_id: string;
+  created_at: Date;
+}): TestScenarioList => {
   return new TestScenarioList({
     id: prismaTestScenarioList.id,
     projectId: prismaTestScenarioList.project_id,

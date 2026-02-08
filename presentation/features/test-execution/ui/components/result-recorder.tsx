@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { RESULT_STATUS_LABELS, RESULT_STATUS_VARIANTS } from "../../domain/models/result-status";
+import {
+  RESULT_STATUS_LABELS,
+  RESULT_STATUS_VARIANTS,
+} from "../../domain/models/result-status";
 import type { ResultStatus } from "../../domain/models/result-status";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";

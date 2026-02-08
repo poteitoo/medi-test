@@ -71,7 +71,10 @@ const createMockTestRunRepository = () => {
         run: mockTestRun,
         items: [mockTestRunItem],
       }),
-    updateStatus: (runId: string, _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED") =>
+    updateStatus: (
+      runId: string,
+      _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED",
+    ) =>
       runId === "run-123"
         ? Effect.succeed(mockTestRunInProgress)
         : Effect.fail(

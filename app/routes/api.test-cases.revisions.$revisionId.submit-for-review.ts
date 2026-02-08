@@ -29,10 +29,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
     const { revisionId } = params;
 
     if (!revisionId) {
-      return data(
-        { error: "revisionIdは必須パラメータです" },
-        { status: 400 },
-      );
+      return data({ error: "revisionIdは必須パラメータです" }, { status: 400 });
     }
 
     const body = await request.json();

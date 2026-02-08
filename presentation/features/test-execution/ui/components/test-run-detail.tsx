@@ -77,7 +77,8 @@ export function TestRunDetail({
   onCompleteRun,
   loading,
 }: TestRunDetailProps) {
-  const progress = summary.total > 0 ? (summary.executed / summary.total) * 100 : 0;
+  const progress =
+    summary.total > 0 ? (summary.executed / summary.total) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -123,7 +124,8 @@ export function TestRunDetail({
             <div className="flex justify-between text-sm">
               <span>進捗</span>
               <span>
-                {summary.executed} / {summary.total} 実行済み ({progress.toFixed(1)}%)
+                {summary.executed} / {summary.total} 実行済み (
+                {progress.toFixed(1)}%)
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
@@ -138,19 +140,27 @@ export function TestRunDetail({
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">合格</p>
-              <p className="text-2xl font-bold text-green-600">{summary.passed}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {summary.passed}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">不合格</p>
-              <p className="text-2xl font-bold text-red-600">{summary.failed}</p>
+              <p className="text-2xl font-bold text-red-600">
+                {summary.failed}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">ブロック</p>
-              <p className="text-2xl font-bold text-yellow-600">{summary.blocked}</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {summary.blocked}
+              </p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">スキップ</p>
-              <p className="text-2xl font-bold text-gray-600">{summary.skipped}</p>
+              <p className="text-2xl font-bold text-gray-600">
+                {summary.skipped}
+              </p>
             </div>
           </div>
         </CardContent>

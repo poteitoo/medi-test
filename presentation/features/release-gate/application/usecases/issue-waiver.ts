@@ -64,9 +64,7 @@ export const issueWaiver = (input: IssueWaiverInput) =>
 
     // 理由が必須
     if (!input.reason || input.reason.trim().length === 0) {
-      return yield* Effect.fail(
-        new Error("Waiverの理由が必要です"),
-      );
+      return yield* Effect.fail(new Error("Waiverの理由が必要です"));
     }
 
     // 有効期限が未来の日付かチェック

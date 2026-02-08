@@ -87,8 +87,7 @@ export const GateEvaluationServiceLive = Layer.effect(
                 target_revision_id: { in: Array.from(testCaseRevisionIds) },
               },
             }),
-          catch: (error) =>
-            new Error(`マッピング取得エラー: ${String(error)}`),
+          catch: (error) => new Error(`マッピング取得エラー: ${String(error)}`),
         });
 
         // Count covered requirements
@@ -318,7 +317,8 @@ export const GateEvaluationServiceLive = Layer.effect(
                   new GateViolation({
                     conditionType: condition.type,
                     severity: condition.required ? "CRITICAL" : "WARNING",
-                    message: "致命的（Critical/High）なバグがリンクされています",
+                    message:
+                      "致命的（Critical/High）なバグがリンクされています",
                     suggestedAction:
                       "致命的なバグを修正するか、Waiverを発行してください",
                   }),

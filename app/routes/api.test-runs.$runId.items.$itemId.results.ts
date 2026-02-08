@@ -15,10 +15,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const { runId, itemId } = params;
 
     if (!runId || !itemId) {
-      return data(
-        { error: "runId and itemId are required" },
-        { status: 400 },
-      );
+      return data({ error: "runId and itemId are required" }, { status: 400 });
     }
 
     const body = await request.json();

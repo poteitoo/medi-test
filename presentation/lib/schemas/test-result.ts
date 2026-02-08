@@ -3,7 +3,12 @@ import { z } from "zod";
 /**
  * テスト結果ステータススキーマ
  */
-export const resultStatusSchema = z.enum(["PASS", "FAIL", "BLOCKED", "SKIPPED"]);
+export const resultStatusSchema = z.enum([
+  "PASS",
+  "FAIL",
+  "BLOCKED",
+  "SKIPPED",
+]);
 
 /**
  * エビデンススキーマ

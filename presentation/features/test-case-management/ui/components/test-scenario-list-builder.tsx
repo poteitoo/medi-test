@@ -105,11 +105,12 @@ export function TestScenarioListBuilder({
     ];
 
     // order を再計算
-    const reordered = newScenarios.map((s, i) =>
-      new TestScenarioListItem({
-        ...s,
-        order: i + 1,
-      }),
+    const reordered = newScenarios.map(
+      (s, i) =>
+        new TestScenarioListItem({
+          ...s,
+          order: i + 1,
+        }),
     );
 
     onReorderScenarios(reordered);
@@ -125,11 +126,12 @@ export function TestScenarioListBuilder({
     ];
 
     // order を再計算
-    const reordered = newScenarios.map((s, i) =>
-      new TestScenarioListItem({
-        ...s,
-        order: i + 1,
-      }),
+    const reordered = newScenarios.map(
+      (s, i) =>
+        new TestScenarioListItem({
+          ...s,
+          order: i + 1,
+        }),
     );
 
     onReorderScenarios(reordered);
@@ -220,7 +222,9 @@ export function TestScenarioListBuilder({
                   {index + 1}.
                 </span>
                 <div className="flex-1">
-                  <div className="font-medium">{scenario.scenarioRevisionId}</div>
+                  <div className="font-medium">
+                    {scenario.scenarioRevisionId}
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {scenario.includeRule ?? "FULL"}
                   </div>

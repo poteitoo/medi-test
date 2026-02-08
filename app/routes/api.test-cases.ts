@@ -30,17 +30,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const projectId = url.searchParams.get("projectId");
 
     if (!projectId) {
-      return data(
-        { error: "projectIdは必須パラメータです" },
-        { status: 400 },
-      );
+      return data({ error: "projectIdは必須パラメータです" }, { status: 400 });
     }
 
     // オプショナルなクエリパラメータを取得
     const limitParam = url.searchParams.get("limit");
     const offsetParam = url.searchParams.get("offset");
-    const includeLatestRevisionParam =
-      url.searchParams.get("includeLatestRevision");
+    const includeLatestRevisionParam = url.searchParams.get(
+      "includeLatestRevision",
+    );
 
     const options = {
       limit: limitParam ? Number(limitParam) : undefined,

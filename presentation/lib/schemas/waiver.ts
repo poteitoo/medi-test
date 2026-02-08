@@ -17,9 +17,7 @@ export const issueWaiverSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 
   /**
    * 適用除外対象のタイプ
@@ -62,9 +60,7 @@ export const deleteWaiverSchema = z.object({
   /**
    * WaiverID
    */
-  waiverId: z
-    .string()
-    .uuid({ message: "有効なWaiverIDを指定してください" }),
+  waiverId: z.string().uuid({ message: "有効なWaiverIDを指定してください" }),
 });
 
 /**
@@ -74,9 +70,7 @@ export const searchWaiversSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 
   /**
    * 対象タイプフィルター（オプション）

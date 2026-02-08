@@ -105,11 +105,12 @@ export function TestScenarioBuilder({
     ];
 
     // order を再計算
-    const reordered = newTestCases.map((tc, i) =>
-      new TestScenarioItem({
-        ...tc,
-        order: i + 1,
-      }),
+    const reordered = newTestCases.map(
+      (tc, i) =>
+        new TestScenarioItem({
+          ...tc,
+          order: i + 1,
+        }),
     );
 
     onReorderTestCases(reordered);
@@ -125,11 +126,12 @@ export function TestScenarioBuilder({
     ];
 
     // order を再計算
-    const reordered = newTestCases.map((tc, i) =>
-      new TestScenarioItem({
-        ...tc,
-        order: i + 1,
-      }),
+    const reordered = newTestCases.map(
+      (tc, i) =>
+        new TestScenarioItem({
+          ...tc,
+          order: i + 1,
+        }),
     );
 
     onReorderTestCases(reordered);

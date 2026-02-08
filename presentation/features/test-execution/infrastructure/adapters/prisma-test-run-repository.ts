@@ -179,7 +179,8 @@ export const PrismaTestRunRepository = Layer.effect(
                       data: {
                         run_id: testRun.id,
                         case_revision_id: tc.caseRevisionId,
-                        origin_scenario_revision_id: tc.originScenarioRevisionId,
+                        origin_scenario_revision_id:
+                          tc.originScenarioRevisionId,
                         order: tc.order,
                       },
                     }),

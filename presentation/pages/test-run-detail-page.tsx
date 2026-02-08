@@ -54,7 +54,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
     const response = await fetch(`/api/test-runs/${runId}`);
 
     if (!response.ok) {
-      throw new Response("Failed to load test run", { status: response.status });
+      throw new Response("Failed to load test run", {
+        status: response.status,
+      });
     }
 
     const result = await response.json();

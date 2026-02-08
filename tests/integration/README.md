@@ -15,6 +15,7 @@ The integration tests are **stub implementations** and require setup before they
 Before running integration tests:
 
 1. **Test Database**: Set up a dedicated test database
+
    ```bash
    # For SQLite (current schema)
    export DATABASE_URL="file:./test.db"
@@ -25,6 +26,7 @@ Before running integration tests:
    ```
 
 2. **Run Migrations**:
+
    ```bash
    pnpm prisma migrate deploy
    ```
@@ -39,6 +41,7 @@ Before running integration tests:
 Before these tests can run, fix the following:
 
 ### 1. Remove Unsupported PrismaClient Options
+
 ```typescript
 // ❌ Current (doesn't work)
 prisma = new PrismaClient({
@@ -53,6 +56,7 @@ prisma = new PrismaClient();
 ```
 
 ### 2. Fix Field Names to Match Schema
+
 The Prisma schema uses snake_case (e.g., `organization_id`, `project_id`), but tests need to match:
 
 ```typescript
@@ -61,12 +65,15 @@ The Prisma schema uses snake_case (e.g., `organization_id`, `project_id`), but t
 ```
 
 ### 3. Add Missing Foreign Keys
+
 Tests create data without proper relationships. Add:
+
 - `organization_id` to Project, User, etc.
 - Proper foreign key relationships
 - Required fields from schema
 
 ### 4. Use Transactions for Cleanup
+
 ```typescript
 beforeEach(async () => {
   await prisma.$transaction([
@@ -102,9 +109,10 @@ pnpm vitest run --coverage tests/integration
 For faster tests without database setup, consider using:
 
 1. **SQLite in-memory database**:
+
    ```typescript
    const prisma = new PrismaClient({
-     datasources: { db: { url: "file::memory:?cache=shared" } }
+     datasources: { db: { url: "file::memory:?cache=shared" } },
    });
    ```
 

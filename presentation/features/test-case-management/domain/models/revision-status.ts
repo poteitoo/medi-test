@@ -103,7 +103,9 @@ export const canTransitionTo = (
 export const getAvailableTransitions = (
   from: RevisionStatus,
 ): RevisionStatus[] => {
-  return Object.values(RevisionStatus).filter((to) => canTransitionTo(from, to));
+  return Object.values(RevisionStatus).filter((to) =>
+    canTransitionTo(from, to),
+  );
 };
 
 /**

@@ -134,9 +134,7 @@ export function requireAuth<T>(
  * ```
  */
 export function optionalAuth<T>(
-  loaderFn: (
-    args: LoaderFunctionArgs & { user?: User },
-  ) => Promise<T> | T,
+  loaderFn: (args: LoaderFunctionArgs & { user?: User }) => Promise<T> | T,
 ) {
   return async (args: LoaderFunctionArgs): Promise<T> => {
     const program = Effect.gen(function* () {

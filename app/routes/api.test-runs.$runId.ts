@@ -30,8 +30,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
       // 各アイテムの最新結果を取得
       const itemsWithResults = yield* Effect.forEach(items, (item) =>
         Effect.gen(function* () {
-          const latestResult =
-            yield* testResultRepo.findLatestByRunItemId(item.id);
+          const latestResult = yield* testResultRepo.findLatestByRunItemId(
+            item.id,
+          );
 
           // テストケースのタイトルを取得
           const caseRevision = yield* Effect.tryPromise({

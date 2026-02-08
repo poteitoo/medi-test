@@ -63,7 +63,10 @@ export const completeTestRun = (input: CompleteTestRunInput) =>
     }
 
     // ステータスをCOMPLETEDに更新
-    const updatedRun = yield* testRunRepo.updateStatus(input.runId, "COMPLETED");
+    const updatedRun = yield* testRunRepo.updateStatus(
+      input.runId,
+      "COMPLETED",
+    );
 
     // 完了サマリーを計算
     const results = yield* testResultRepo.findByRunId(input.runId);

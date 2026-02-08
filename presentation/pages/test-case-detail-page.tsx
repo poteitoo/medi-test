@@ -80,9 +80,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       return redirect(`/test-cases/${caseId}`);
     } catch (error) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "レビュー提出に失敗しました";
+        error instanceof Error ? error.message : "レビュー提出に失敗しました";
       return data({ error: errorMessage }, { status: 500 });
     }
   }
@@ -200,7 +198,9 @@ export default function TestCaseDetailPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             <RevisionHistory
               revisions={revisions}
-              onSelectRevision={(revision) => setSelectedRevisionId(revision.id)}
+              onSelectRevision={(revision) =>
+                setSelectedRevisionId(revision.id)
+              }
             />
 
             {selectedRevision && (

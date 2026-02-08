@@ -44,10 +44,13 @@ describe("PrismaTestRunRepository Integration Tests", () => {
 
   beforeAll(async () => {
     // Initialize Prisma with test database
-    const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const databaseUrl =
+      process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 
     if (!databaseUrl) {
-      throw new Error("TEST_DATABASE_URL or DATABASE_URL must be set for integration tests");
+      throw new Error(
+        "TEST_DATABASE_URL or DATABASE_URL must be set for integration tests",
+      );
     }
 
     prisma = new PrismaClient({
@@ -287,7 +290,10 @@ describe("PrismaTestRunRepository Integration Tests", () => {
 
     const program = Effect.gen(function* () {
       const testRunRepo = yield* TestRunRepository;
-      const updated = yield* testRunRepo.updateStatus(testRun.id, "IN_PROGRESS");
+      const updated = yield* testRunRepo.updateStatus(
+        testRun.id,
+        "IN_PROGRESS",
+      );
       return updated;
     }).pipe(Effect.provide(PrismaTestRunRepositoryLive));
 

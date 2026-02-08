@@ -140,7 +140,10 @@ export function useRevisionManagement() {
             return Effect.succeed({ rev1, rev2 });
           }),
           Effect.provide(TestCaseManagementLayer),
-        ) as Effect.Effect<{ rev1: TestCaseRevision; rev2: TestCaseRevision } | null>;
+        ) as Effect.Effect<{
+          rev1: TestCaseRevision;
+          rev2: TestCaseRevision;
+        } | null>;
 
         const result = await Effect.runPromise(program);
         return result;

@@ -200,7 +200,10 @@ export const getRunGroupProgress = (input: GetRunGroupProgressInput) =>
       totalRuns: runs.length,
       completedRuns: runs.filter((r) => r.status === "COMPLETED").length,
       totalTests: runProgresses.reduce((sum, r) => sum + r.progress.total, 0),
-      executedTests: runProgresses.reduce((sum, r) => sum + r.progress.executed, 0),
+      executedTests: runProgresses.reduce(
+        (sum, r) => sum + r.progress.executed,
+        0,
+      ),
       passedTests: runProgresses.reduce((sum, r) => sum + r.progress.passed, 0),
       failedTests: runProgresses.reduce((sum, r) => sum + r.progress.failed, 0),
     };
@@ -217,7 +220,9 @@ export const getRunGroupProgress = (input: GetRunGroupProgressInput) =>
 
     if (input.enableSSE) {
       const sseService = yield* SSEService;
-      sseStream = yield* sseService.createRunGroupProgressStream(input.runGroupId);
+      sseStream = yield* sseService.createRunGroupProgressStream(
+        input.runGroupId,
+      );
     }
 
     return {

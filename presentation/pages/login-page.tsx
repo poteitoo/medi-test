@@ -1,5 +1,11 @@
 import { useSearchParams } from "react-router";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "~/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
 /**
@@ -91,17 +97,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">medi-test</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            テスト管理システム
-          </p>
+          <p className="mt-2 text-sm text-gray-600">テスト管理システム</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>ログイン</CardTitle>
-            <CardDescription>
-              Clerk 認証でログインしてください
-            </CardDescription>
+            <CardDescription>Clerk 認証でログインしてください</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -132,9 +134,26 @@ export default function LoginPage() {
                     以下の手順に従って Clerk SDK をセットアップしてください:
                   </p>
                   <ol className="mb-6 space-y-2 text-left text-sm text-gray-700">
-                    <li>1. <code className="rounded bg-gray-100 px-1 py-0.5">pnpm add @clerk/clerk-react</code></li>
-                    <li>2. 環境変数に <code className="rounded bg-gray-100 px-1 py-0.5">CLERK_PUBLISHABLE_KEY</code> を設定</li>
-                    <li>3. <code className="rounded bg-gray-100 px-1 py-0.5">app/root.tsx</code> に ClerkProvider を追加</li>
+                    <li>
+                      1.{" "}
+                      <code className="rounded bg-gray-100 px-1 py-0.5">
+                        pnpm add @clerk/clerk-react
+                      </code>
+                    </li>
+                    <li>
+                      2. 環境変数に{" "}
+                      <code className="rounded bg-gray-100 px-1 py-0.5">
+                        CLERK_PUBLISHABLE_KEY
+                      </code>{" "}
+                      を設定
+                    </li>
+                    <li>
+                      3.{" "}
+                      <code className="rounded bg-gray-100 px-1 py-0.5">
+                        app/root.tsx
+                      </code>{" "}
+                      に ClerkProvider を追加
+                    </li>
                     <li>4. このファイルのコメントを解除</li>
                   </ol>
                   <Button disabled variant="outline" className="w-full">

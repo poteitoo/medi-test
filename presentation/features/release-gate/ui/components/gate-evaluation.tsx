@@ -133,11 +133,7 @@ export function GateEvaluation({
                           {VIOLATION_SEVERITY_LABELS[violation.severity]}
                         </Badge>
                         <span className="text-sm font-medium">
-                          {
-                            GATE_CONDITION_TYPE_LABELS[
-                              violation.conditionType
-                            ]
-                          }
+                          {GATE_CONDITION_TYPE_LABELS[violation.conditionType]}
                         </span>
                         {violation.hasWaiver && (
                           <Badge variant="outline">Waiver発行済み</Badge>

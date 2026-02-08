@@ -11,7 +11,9 @@ import { TestRunNotFoundError } from "~/features/test-execution/domain/errors/te
 /**
  * Mock TestRunRepository implementation for testing
  */
-const createMockTestRunRepository = (initialStatus: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" = "IN_PROGRESS") => {
+const createMockTestRunRepository = (
+  initialStatus: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" = "IN_PROGRESS",
+) => {
   const mockTestRun = new TestRun({
     id: "run-123",
     runGroupId: "group-456",
@@ -79,7 +81,10 @@ const createMockTestRunRepository = (initialStatus: "ASSIGNED" | "IN_PROGRESS" |
         run: mockTestRun,
         items: [mockTestRunItem1],
       }),
-    updateStatus: (runId: string, _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED") =>
+    updateStatus: (
+      runId: string,
+      _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED",
+    ) =>
       runId === "run-123"
         ? Effect.succeed(mockTestRunCompleted)
         : Effect.fail(
@@ -149,7 +154,10 @@ const createMockLayer = (
 ) => {
   return Layer.mergeAll(
     Layer.succeed(TestRunRepository, createMockTestRunRepository(runStatus)),
-    Layer.succeed(TestResultRepository, createMockTestResultRepository(hasAllResults)),
+    Layer.succeed(
+      TestResultRepository,
+      createMockTestResultRepository(hasAllResults),
+    ),
   );
 };
 

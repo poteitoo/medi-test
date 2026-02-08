@@ -2,7 +2,13 @@ import { useState, useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 
@@ -54,7 +60,9 @@ export function BugLinkInput({
   const [links, setLinks] = useState<readonly BugLink[]>(existingLinks);
   const [currentUrl, setCurrentUrl] = useState("");
   const [currentTitle, setCurrentTitle] = useState("");
-  const [currentSeverity, setCurrentSeverity] = useState<"CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | undefined>(undefined);
+  const [currentSeverity, setCurrentSeverity] = useState<
+    "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | undefined
+  >(undefined);
   const [error, setError] = useState<string | null>(null);
 
   const validateUrl = (url: string): boolean => {
@@ -104,7 +112,14 @@ export function BugLinkInput({
     setCurrentUrl("");
     setCurrentTitle("");
     setCurrentSeverity(undefined);
-  }, [currentUrl, currentTitle, currentSeverity, links, maxLinks, onLinksChange]);
+  }, [
+    currentUrl,
+    currentTitle,
+    currentSeverity,
+    links,
+    maxLinks,
+    onLinksChange,
+  ]);
 
   const handleRemoveLink = useCallback(
     (index: number) => {
@@ -165,7 +180,11 @@ export function BugLinkInput({
                   className={cn(
                     currentSeverity === severity && SEVERITY_VARIANTS[severity],
                   )}
-                  onClick={() => setCurrentSeverity(currentSeverity === severity ? undefined : severity)}
+                  onClick={() =>
+                    setCurrentSeverity(
+                      currentSeverity === severity ? undefined : severity,
+                    )
+                  }
                   disabled={links.length >= maxLinks}
                 >
                   {SEVERITY_LABELS[severity]}
@@ -174,9 +193,7 @@ export function BugLinkInput({
             </div>
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button
             type="button"
@@ -191,7 +208,9 @@ export function BugLinkInput({
         {/* Link List */}
         {links.length > 0 && (
           <div className="space-y-2">
-            <Label>追加済みバグリンク ({links.length}/{maxLinks})</Label>
+            <Label>
+              追加済みバグリンク ({links.length}/{maxLinks})
+            </Label>
             <div className="space-y-2">
               {links.map((link, index) => (
                 <div
@@ -203,7 +222,10 @@ export function BugLinkInput({
                       {link.severity && (
                         <Badge
                           variant="outline"
-                          className={cn("text-xs", SEVERITY_VARIANTS[link.severity])}
+                          className={cn(
+                            "text-xs",
+                            SEVERITY_VARIANTS[link.severity],
+                          )}
                         >
                           {SEVERITY_LABELS[link.severity]}
                         </Badge>

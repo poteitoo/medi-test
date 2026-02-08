@@ -37,9 +37,7 @@ export type GateEvaluationResult = {
  *
  * リリースゲート条件の評価を行うサービス
  */
-export class GateEvaluationService extends Context.Tag(
-  "GateEvaluationService",
-)<
+export class GateEvaluationService extends Context.Tag("GateEvaluationService")<
   GateEvaluationService,
   {
     /**

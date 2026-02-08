@@ -347,8 +347,7 @@ const PrismaTestScenarioRepositoryImpl = Effect.gen(function* () {
     deleteScenario: (scenarioId: string) =>
       Effect.gen(function* () {
         yield* Effect.tryPromise({
-          try: () =>
-            prisma.testScenario.delete({ where: { id: scenarioId } }),
+          try: () => prisma.testScenario.delete({ where: { id: scenarioId } }),
           catch: (error) =>
             new TestScenarioNotFoundError({
               message: `テストシナリオの削除に失敗しました: ${String(error)}`,

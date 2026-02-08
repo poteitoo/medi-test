@@ -103,7 +103,9 @@ export class TestCaseRepository extends Context.Tag("TestCaseRepository")<
      * }
      * ```
      */
-    readonly findById: (caseId: string) => Effect.Effect<TestCase | null, never>;
+    readonly findById: (
+      caseId: string,
+    ) => Effect.Effect<TestCase | null, never>;
 
     /**
      * プロジェクトIDでテストケース一覧を取得

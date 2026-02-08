@@ -51,9 +51,7 @@ export function TestCaseList({
 
     const hasLatestRevision = "latestRevision" in item;
     const testCase = hasLatestRevision ? item.testCase : item;
-    const title = hasLatestRevision
-      ? item.latestRevision?.title ?? ""
-      : "";
+    const title = hasLatestRevision ? (item.latestRevision?.title ?? "") : "";
 
     return (
       testCase.id.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -19,10 +19,13 @@ describe("PrismaTestResultRepository Integration Tests", () => {
   let testUserId: string;
 
   beforeAll(async () => {
-    const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const databaseUrl =
+      process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 
     if (!databaseUrl) {
-      throw new Error("TEST_DATABASE_URL or DATABASE_URL must be set for integration tests");
+      throw new Error(
+        "TEST_DATABASE_URL or DATABASE_URL must be set for integration tests",
+      );
     }
 
     prisma = new PrismaClient({
@@ -417,7 +420,11 @@ describe("PrismaTestResultRepository Integration Tests", () => {
     const result = await Effect.runPromise(program);
     const afterCreate = new Date();
 
-    expect(result.executedAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
-    expect(result.executedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+    expect(result.executedAt.getTime()).toBeGreaterThanOrEqual(
+      beforeCreate.getTime(),
+    );
+    expect(result.executedAt.getTime()).toBeLessThanOrEqual(
+      afterCreate.getTime(),
+    );
   });
 });

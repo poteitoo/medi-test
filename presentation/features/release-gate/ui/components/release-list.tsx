@@ -44,13 +44,9 @@ export function ReleaseList({ releases, onCreateNew }: ReleaseListProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">リリース</h2>
-          <p className="text-muted-foreground">
-            プロジェクトのリリース一覧
-          </p>
+          <p className="text-muted-foreground">プロジェクトのリリース一覧</p>
         </div>
-        {onCreateNew && (
-          <Button onClick={onCreateNew}>新規リリース作成</Button>
-        )}
+        {onCreateNew && <Button onClick={onCreateNew}>新規リリース作成</Button>}
       </div>
 
       {releases.length === 0 ? (

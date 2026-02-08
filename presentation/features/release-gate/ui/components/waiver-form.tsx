@@ -82,7 +82,9 @@ export function WaiverForm({
             <Label htmlFor="targetType">対象タイプ</Label>
             <Select
               value={targetType}
-              onValueChange={(value) => setTargetType(value as WaiverTargetType)}
+              onValueChange={(value) =>
+                setTargetType(value as WaiverTargetType)
+              }
             >
               <SelectTrigger id="targetType">
                 <SelectValue />

@@ -48,7 +48,10 @@ export class TransactionError extends Error {
  * トランザクション内で実行する関数の型
  */
 export type TransactionCallback<A, E> = (
-  tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">,
+  tx: Omit<
+    PrismaClient,
+    "$connect" | "$disconnect" | "$on" | "$transaction" | "$use"
+  >,
 ) => Effect.Effect<A, E, never>;
 
 /**

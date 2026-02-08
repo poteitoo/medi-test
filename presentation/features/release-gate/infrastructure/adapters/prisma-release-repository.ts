@@ -59,9 +59,7 @@ export const PrismaReleaseRepository = Layer.effect(
                 orderBy: { created_at: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `リリース一覧の取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`リリース一覧の取得に失敗しました: ${String(error)}`),
           });
 
           return releases.map(

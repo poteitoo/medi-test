@@ -62,9 +62,7 @@ export class RevisionAlreadySubmittedError extends Data.TaggedError(
    * エラーメッセージを取得
    */
   get displayMessage(): string {
-    return (
-      this.message ?? `リビジョンは既に提出済みです: ${this.revisionId}`
-    );
+    return this.message ?? `リビジョンは既に提出済みです: ${this.revisionId}`;
   }
 }
 

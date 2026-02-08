@@ -1,10 +1,5 @@
 import type { TestCaseRevision } from "../../domain/models/test-case-revision";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { Badge } from "~/components/ui/badge";
 import { RevisionStatusLabels } from "../../domain/models/revision-status";
@@ -325,7 +320,8 @@ export function DiffViewer({ oldRevision, newRevision }: DiffViewerProps) {
                     </div>
                   )}
                   {[...newTags].filter(
-                    (tag) => !addedTags.includes(tag) && !removedTags.includes(tag)
+                    (tag) =>
+                      !addedTags.includes(tag) && !removedTags.includes(tag),
                   ).length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {[...newTags]

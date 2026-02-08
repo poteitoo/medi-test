@@ -58,10 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // 却下の場合、コメントが必須
     if (validatedData.decision === "REJECTED" && !validatedData.comment) {
-      return data(
-        { error: "却下の場合はコメントが必須です" },
-        { status: 400 },
-      );
+      return data({ error: "却下の場合はコメントが必須です" }, { status: 400 });
     }
 
     // 承認を作成
@@ -75,7 +72,9 @@ export async function action({ request }: ActionFunctionArgs) {
         decision: validatedData.decision,
         approverId: validatedData.approverId,
         comment: validatedData.comment,
-        evidenceLinks: validatedData.evidenceLinks as EvidenceLink[] | undefined,
+        evidenceLinks: validatedData.evidenceLinks as
+          | EvidenceLink[]
+          | undefined,
       });
     }).pipe(Effect.provide(ApprovalLayer));
 

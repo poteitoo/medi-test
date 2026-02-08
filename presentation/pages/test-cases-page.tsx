@@ -36,7 +36,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return { testCases, projectId };
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "テストケースの取得に失敗しました";
+      error instanceof Error
+        ? error.message
+        : "テストケースの取得に失敗しました";
     return { testCases: [], projectId, error: errorMessage };
   }
 }
@@ -136,8 +138,7 @@ export default function TestCasesPage() {
       <TestCaseList
         testCases={filteredTestCases}
         onSelect={(testCase) => {
-          const tc =
-            "testCase" in testCase ? testCase.testCase : testCase;
+          const tc = "testCase" in testCase ? testCase.testCase : testCase;
           window.location.href = `/test-cases/${tc.id}`;
         }}
       />

@@ -146,7 +146,9 @@ export default function ReleaseDetailPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/releases?projectId=${release.projectId}`)}
+              onClick={() =>
+                navigate(`/releases?projectId=${release.projectId}`)
+              }
             >
               ← 戻る
             </Button>

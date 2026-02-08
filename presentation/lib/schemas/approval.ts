@@ -236,23 +236,12 @@ export const getApprovalsQuerySchema = z.object({
   /**
    * 取得する最大件数（オプション、1〜100）
    */
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(100)
-    .optional()
-    .default(20),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
 
   /**
    * スキップする件数（オプション、0以上）
    */
-  offset: z.coerce
-    .number()
-    .int()
-    .min(0)
-    .optional()
-    .default(0),
+  offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
 /**

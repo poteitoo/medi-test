@@ -40,10 +40,13 @@ describe("E2E: Complete Test Execution Flow", () => {
   let testCaseRevisionIds: string[];
 
   beforeAll(async () => {
-    const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const databaseUrl =
+      process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
 
     if (!databaseUrl) {
-      throw new Error("TEST_DATABASE_URL or DATABASE_URL must be set for E2E tests");
+      throw new Error(
+        "TEST_DATABASE_URL or DATABASE_URL must be set for E2E tests",
+      );
     }
 
     prisma = new PrismaClient({
@@ -221,7 +224,9 @@ describe("E2E: Complete Test Execution Flow", () => {
 
     expect(createResult.run.status).toBe("ASSIGNED");
     expect(createResult.items).toHaveLength(4);
-    console.log(`✓ Test run created: ${createResult.run.id} with ${createResult.items.length} items`);
+    console.log(
+      `✓ Test run created: ${createResult.run.id} with ${createResult.items.length} items`,
+    );
 
     const runId = createResult.run.id;
     const runItemIds = createResult.items.map((item) => item.id);
@@ -346,7 +351,9 @@ describe("E2E: Complete Test Execution Flow", () => {
 
     expect(finalRun?.status).toBe("COMPLETED");
     expect(finalRun?.run_items).toHaveLength(4);
-    expect(finalRun?.run_items.every((item) => item.test_results.length > 0)).toBe(true);
+    expect(
+      finalRun?.run_items.every((item) => item.test_results.length > 0),
+    ).toBe(true);
     console.log(`✓ Final state verified in database`);
 
     console.log("\n✅ Complete test execution flow completed successfully!");
@@ -397,7 +404,9 @@ describe("E2E: Complete Test Execution Flow", () => {
       force: false,
     }).pipe(Effect.provide(TestExecutionLayer));
 
-    await expect(Effect.runPromise(completeWithoutForceProgram)).rejects.toThrow();
+    await expect(
+      Effect.runPromise(completeWithoutForceProgram),
+    ).rejects.toThrow();
     console.log("✓ Completion without force flag rejected (expected)");
 
     // Complete with force - should succeed
@@ -412,7 +421,9 @@ describe("E2E: Complete Test Execution Flow", () => {
     expect(completeResult.summary.total).toBe(4);
     expect(completeResult.summary.executed).toBe(2);
     console.log("✓ Forced completion succeeded");
-    console.log(`  Executed: ${completeResult.summary.executed}/${completeResult.summary.total}`);
+    console.log(
+      `  Executed: ${completeResult.summary.executed}/${completeResult.summary.total}`,
+    );
 
     console.log("\n✅ Forced completion test passed!");
   });

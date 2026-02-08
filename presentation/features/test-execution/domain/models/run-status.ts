@@ -15,10 +15,7 @@ export const RUN_STATUS_LABELS: Record<RunStatus, string> = {
 /**
  * ステータス遷移が可能かチェック
  */
-export const canTransitionTo = (
-  from: RunStatus,
-  to: RunStatus,
-): boolean => {
+export const canTransitionTo = (from: RunStatus, to: RunStatus): boolean => {
   const allowedTransitions: Record<RunStatus, RunStatus[]> = {
     ASSIGNED: ["IN_PROGRESS"],
     IN_PROGRESS: ["COMPLETED", "ASSIGNED"], // 中断して戻す場合

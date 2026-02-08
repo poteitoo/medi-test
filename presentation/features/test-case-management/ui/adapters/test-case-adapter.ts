@@ -175,7 +175,9 @@ export async function executeListTestCases(
 ): Promise<readonly TestCase[] | readonly TestCaseWithLatestRevision[]> {
   const program = listTestCases(projectId, options).pipe(
     Effect.provide(TestCaseManagementLayer),
-  ) as Effect.Effect<readonly TestCase[] | readonly TestCaseWithLatestRevision[]>;
+  ) as Effect.Effect<
+    readonly TestCase[] | readonly TestCaseWithLatestRevision[]
+  >;
   return await Effect.runPromise(program);
 }
 

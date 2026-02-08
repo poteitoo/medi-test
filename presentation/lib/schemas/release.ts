@@ -54,9 +54,7 @@ export const setBaselineSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 
   /**
    * ソーステストシナリオリストリビジョンID
@@ -78,9 +76,7 @@ export const evaluateGateSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 });
 
 /**
@@ -90,9 +86,7 @@ export const approveReleaseSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 
   /**
    * 承認者ユーザーID
@@ -117,9 +111,7 @@ export const updateReleaseStatusSchema = z.object({
   /**
    * リリースID
    */
-  releaseId: z
-    .string()
-    .uuid({ message: "有効なリリースIDを指定してください" }),
+  releaseId: z.string().uuid({ message: "有効なリリースIDを指定してください" }),
 
   /**
    * 新しいステータス

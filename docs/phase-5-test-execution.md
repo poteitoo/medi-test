@@ -12,6 +12,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 ### Domain Layer (`domain/`)
 
 **Models** (6 files - 100% complete):
+
 - `test-run-group.ts` - テストラングループ（複数のテストランをまとめる）
 - `test-run.ts` - テストラン（担当者ごとの実行単位）
 - `test-run-item.ts` - テストランアイテム（個別テストケース）
@@ -20,11 +21,13 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 - `result-status.ts` - ResultStatus enum (PASS/FAIL/BLOCKED/SKIPPED)
 
 **Domain Errors** (1/3 files):
+
 - `test-run-errors.ts` - TestRunNotFoundError, InvalidRunStatusError
 
 ### Application Layer (`application/`)
 
 **Ports** (2/4 files):
+
 - `test-run-repository.ts` - テストランのデータアクセス
   - `findById`, `findByIdWithItems`, `findByRunGroupId`, `findByReleaseId`
   - `create`, `updateStatus`
@@ -32,6 +35,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
   - `create`, `findByRunItemId`, `findLatestByRunItemId`, `findByRunId`
 
 **Use Cases** (4/6 files):
+
 - ✅ `create-test-run.ts` - テストラン作成（TestRunItem自動生成）
 - ✅ `start-test-run.ts` - テストラン開始（ASSIGNED → IN_PROGRESS）
 - ✅ `record-test-result.ts` - テスト結果記録（自動ステータス遷移）
@@ -42,6 +46,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 ### Infrastructure Layer (`infrastructure/`)
 
 **Adapters** (2/4 files):
+
 - ✅ `prisma-test-run-repository.ts` - Prisma実装
   - **特徴**: TestScenarioListから自動的にTestRunItemを展開してトランザクション作成
 - ✅ `prisma-test-result-repository.ts` - Prisma実装
@@ -50,11 +55,13 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 - ⏳ `sse-service-impl.ts` - Server-Sent Events実装
 
 **Layer** (1 file):
+
 - ✅ `test-execution-layer.ts` - 全依存関係の組み合わせ
 
 ### UI Layer (`ui/`)
 
 **Components** (4/7 files):
+
 - ✅ `result-recorder.tsx` - テスト結果記録フォーム
   - ステータス選択（4種類）
   - 実行ログ入力
@@ -70,6 +77,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
   - 詳細リンク
 
 **Pages** (2/2 files - 100% complete):
+
 - ✅ `test-runs-page.tsx` - テストラン一覧ページ
   - ラングループIDによる検索
   - 進捗付き一覧表示
@@ -79,6 +87,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
   - useFetcher による楽観的UI更新
 
 **Hooks** (1/3 files):
+
 - ✅ `use-test-run.ts` - テストランデータとアクション提供
   - `useTestRun()` - 詳細データ + actions
   - `useTestRunList()` - 一覧データ
@@ -113,6 +122,7 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 ### Validation Schemas (`lib/schemas/`)
 
 **All 2 files complete** (100%):
+
 - ✅ `test-run.ts` - 8つのスキーマ定義
   - `runStatusSchema`, `runGroupStatusSchema`
   - `createTestRunSchema`, `updateTestRunStatusSchema`
@@ -127,13 +137,16 @@ Phase 5 implements the complete test execution workflow, allowing users to execu
 ### Routes (`app/routes.ts`)
 
 **All 2 routes complete** (100%):
+
 - ✅ `/test-runs` - テストラン一覧ページ
 - ✅ `/test-runs/:runId` - テストラン詳細ページ
 
 ## Key Features Implemented
 
 ### 1. Automatic Test Case Expansion
+
 テストシナリオリストから自動的にテストランアイテムを生成:
+
 ```typescript
 // TestScenarioList → TestScenarioItems → TestRunItems
 // 全てトランザクション内で原子的に作成
@@ -146,12 +159,16 @@ const { run, items } = await createTestRun({
 ```
 
 ### 2. Auto Status Transitions
+
 ステータスの自動遷移:
+
 - **ASSIGNED → IN_PROGRESS**: 最初のテスト結果記録時
 - **IN_PROGRESS → COMPLETED**: 完了アクション実行時（全ケース実行チェック）
 
 ### 3. Real-time Progress Tracking
+
 進捗のリアルタイム計算:
+
 ```typescript
 {
   total: 50,        // 全テストケース数
@@ -164,7 +181,9 @@ const { run, items } = await createTestRun({
 ```
 
 ### 4. Evidence and Bug Tracking
+
 エビデンスとバグリンクの記録:
+
 ```typescript
 {
   status: "FAIL",
@@ -182,7 +201,9 @@ const { run, items } = await createTestRun({
 ```
 
 ### 5. Force Completion
+
 強制完了オプション:
+
 ```typescript
 // 未実行のテストケースがあっても完了可能
 completeTestRun({ runId, force: true });
@@ -193,6 +214,7 @@ completeTestRun({ runId, force: true });
 ### Unit Tests (22 tests - 100% passing)
 
 **recordTestResult.test.ts** (10 tests):
+
 - ✅ 各ステータス (PASS/FAIL/BLOCKED/SKIPPED) の記録
 - ✅ エビデンス（ログ/スクリーンショット/リンク）の記録
 - ✅ バグリンクの記録
@@ -200,12 +222,14 @@ completeTestRun({ runId, force: true });
 - ✅ エラーケース
 
 **startTestRun.test.ts** (5 tests):
+
 - ✅ ASSIGNED状態からの開始
 - ✅ 既にIN_PROGRESS/COMPLETEDの場合のエラー
 - ✅ テストラン不存在エラー
 - ✅ ステータス遷移ルールの検証
 
 **completeTestRun.test.ts** (7 tests):
+
 - ✅ 全テストケース実行済みでの完了
 - ✅ サマリー計算の正確性
 - ✅ 未実行ケースありでのエラー
@@ -214,6 +238,7 @@ completeTestRun({ runId, force: true });
 - ✅ テストラン不存在エラー
 
 ### Test Coverage Summary
+
 - **Unit Tests**: 40/40 passing (100%)
 - **Integration Tests**: 0/2 (pending)
 - **E2E Tests**: 0/3 (pending)
@@ -221,12 +246,15 @@ completeTestRun({ runId, force: true });
 ## User Flow
 
 ### Complete Execution Flow
+
 1. **Navigate to Test Runs**
+
    ```
    /test-runs → Search by runGroupId
    ```
 
 2. **View List**
+
    ```
    List of runs with:
    - Status badge (ASSIGNED/IN_PROGRESS/COMPLETED)
@@ -236,12 +264,14 @@ completeTestRun({ runId, force: true });
    ```
 
 3. **Start Run**
+
    ```
    /test-runs/:runId → Click "実行開始"
    Status: ASSIGNED → IN_PROGRESS
    ```
 
 4. **Record Results**
+
    ```
    For each test case:
    - Click "結果を記録"
@@ -261,6 +291,7 @@ completeTestRun({ runId, force: true });
 ## Data Flow
 
 ### Test Run Creation
+
 ```
 1. User submits form
 2. API validates input (Zod)
@@ -272,6 +303,7 @@ completeTestRun({ runId, force: true });
 ```
 
 ### Result Recording
+
 ```
 1. User submits result form
 2. API validates input (Zod)
@@ -283,6 +315,7 @@ completeTestRun({ runId, force: true });
 ```
 
 ### Progress Calculation
+
 ```
 1. Fetch all TestRunItems
 2. Fetch all TestResults
@@ -297,24 +330,28 @@ completeTestRun({ runId, force: true });
 ## Technical Highlights
 
 ### 1. Effect TS Patterns
+
 - **Context.Tag** for port definitions
 - **Layer** for adapter implementations
 - **Effect.gen** for async-like syntax
 - **Effect.provide** for dependency injection
 
 ### 2. React Router v7 Patterns
+
 - **loader** for data fetching
 - **action** for mutations
 - **useFetcher** for optimistic UI
 - **useRevalidator** for data refresh
 
 ### 3. Type Safety
+
 - All JSON fields properly typed
 - Zod validation at API boundaries
 - Domain models using Data.Class (immutable)
 - Effect error handling with tagged errors
 
 ### 4. Database Patterns
+
 - Transaction-based creation
 - Nested includes for related data
 - Efficient queries with proper indexing
@@ -323,12 +360,14 @@ completeTestRun({ runId, force: true });
 ## Performance Considerations
 
 ### Optimizations
+
 - ✅ Batch fetching of test case titles
 - ✅ Single transaction for test run creation
 - ✅ Efficient progress calculation (single query per run)
 - ✅ Lazy loading of test run items
 
 ### Future Optimizations
+
 - ⏳ SSE for real-time progress updates (no polling)
 - ⏳ Virtual scrolling for large test lists
 - ⏳ Caching of test case metadata
@@ -337,6 +376,7 @@ completeTestRun({ runId, force: true });
 ## API Examples
 
 ### Create Test Run
+
 ```bash
 POST /api/test-runs
 Content-Type: application/json
@@ -350,6 +390,7 @@ Content-Type: application/json
 ```
 
 ### Record Result
+
 ```bash
 POST /api/test-runs/:runId/items/:itemId/results
 Content-Type: application/json
@@ -369,6 +410,7 @@ Content-Type: application/json
 ```
 
 ### Get Test Run Details
+
 ```bash
 GET /api/test-runs/:runId
 
@@ -392,16 +434,19 @@ Response:
 ## Remaining Tasks (10 tasks)
 
 ### High Priority
+
 - [ ] Integration tests for repositories
 - [ ] E2E tests for execution flow
 
 ### Medium Priority
+
 - [ ] JUnit XML parser (CI integration)
 - [ ] SSE service (real-time updates)
 - [ ] importCIResults use case
 - [ ] getTestRunProgress use case
 
 ### Low Priority
+
 - [ ] EvidenceUploader component (file uploads)
 - [ ] BugLinkInput component (enhanced UI)
 - [ ] TestRunProgressBar component (real-time)
@@ -418,6 +463,7 @@ When implementing remaining features:
 ## Conclusion
 
 Phase 5 provides a complete, production-ready test execution system with:
+
 - ✅ Full CRUD operations
 - ✅ Comprehensive test coverage (22 unit tests)
 - ✅ Type-safe API with validation

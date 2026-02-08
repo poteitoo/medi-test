@@ -1,5 +1,8 @@
 import { Context, Effect } from "effect";
-import type { RoleType, RoleAssignment } from "@shared/auth/domain/models/role-assignment";
+import type {
+  RoleType,
+  RoleAssignment,
+} from "@shared/auth/domain/models/role-assignment";
 
 /**
  * Permission Errors
@@ -102,10 +105,7 @@ export const RolePermissions: Record<RoleType, readonly Permission[]> = {
     Permission.TEST_RUN_CREATE,
     Permission.TEST_RUN_EXECUTE,
   ],
-  DEVELOPER: [
-    Permission.TEST_CASE_READ,
-    Permission.TEST_RUN_EXECUTE,
-  ],
+  DEVELOPER: [Permission.TEST_CASE_READ, Permission.TEST_RUN_EXECUTE],
   PM_PO: [
     Permission.TEST_CASE_READ,
     Permission.TEST_RUN_CREATE,
@@ -128,13 +128,13 @@ export const RolePermissions: Record<RoleType, readonly Permission[]> = {
  * ```typescript
  * const program = Effect.gen(function* () {
  *   const rbac = yield* RBACService;
- *   
+ *
  *   // 権限チェック
  *   yield* rbac.requirePermission(Permission.TEST_CASE_CREATE);
- *   
+ *
  *   // ロールチェック
  *   const isAdmin = yield* rbac.hasRole(RoleType.ADMIN);
- *   
+ *
  *   return "OK";
  * });
  * ```

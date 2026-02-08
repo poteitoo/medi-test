@@ -1,4 +1,11 @@
-import { Check, X, User, Clock, MessageSquare, ExternalLink } from "lucide-react";
+import {
+  Check,
+  X,
+  User,
+  Clock,
+  MessageSquare,
+  ExternalLink,
+} from "lucide-react";
 import { formatDateTime } from "~/lib/utils/date";
 import type { Approval } from "../../domain/models/approval";
 import { APPROVAL_ACTION_LABELS } from "../../domain/models/approval";

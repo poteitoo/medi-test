@@ -63,16 +63,14 @@ import { prisma } from "@shared/db/client";
  * @param dbAssignment - Prisma の RoleAssignment
  * @returns Domain RoleAssignment インスタンス
  */
-function mapPrismaRoleAssignmentToDomain(
-  dbAssignment: {
-    id: string;
-    user_id: string;
-    organization_id: string | null;
-    project_id: string | null;
-    role: string;
-    created_at: Date;
-  },
-): RoleAssignment {
+function mapPrismaRoleAssignmentToDomain(dbAssignment: {
+  id: string;
+  user_id: string;
+  organization_id: string | null;
+  project_id: string | null;
+  role: string;
+  created_at: Date;
+}): RoleAssignment {
   return new RoleAssignment({
     id: dbAssignment.id,
     userId: dbAssignment.user_id,
@@ -108,7 +106,7 @@ function filterRolesByScope(
     // Project スコープの場合: Project レベルまたは Organization レベルのロール
     return assignments.filter(
       (a) =>
-        (a.projectId === scope.projectId) ||
+        a.projectId === scope.projectId ||
         (a.organizationId === scope.organizationId && !a.projectId),
     );
   }
@@ -192,8 +190,12 @@ export const RBACLive = Layer.effect(
               ),
           });
 
-          const assignments = dbAssignments.map(mapPrismaRoleAssignmentToDomain);
-          const scope = organizationId ? { organizationId, projectId } : undefined;
+          const assignments = dbAssignments.map(
+            mapPrismaRoleAssignmentToDomain,
+          );
+          const scope = organizationId
+            ? { organizationId, projectId }
+            : undefined;
 
           return filterRolesByScope(assignments, scope);
         }),
@@ -224,7 +226,9 @@ export const RBACLive = Layer.effect(
             catch: () => [] as const,
           }).pipe(Effect.orElseSucceed(() => [] as const));
 
-          const assignments = dbAssignments.map(mapPrismaRoleAssignmentToDomain);
+          const assignments = dbAssignments.map(
+            mapPrismaRoleAssignmentToDomain,
+          );
           const filteredAssignments = filterRolesByScope(assignments, scope);
 
           return filteredAssignments.some((a) => a.role === role);
@@ -257,7 +261,9 @@ export const RBACLive = Layer.effect(
             catch: () => [] as const,
           }).pipe(Effect.orElseSucceed(() => [] as const));
 
-          const assignments = dbAssignments.map(mapPrismaRoleAssignmentToDomain);
+          const assignments = dbAssignments.map(
+            mapPrismaRoleAssignmentToDomain,
+          );
           const filteredAssignments = filterRolesByScope(assignments, scope);
 
           return filteredAssignments.some((a) =>
@@ -296,7 +302,9 @@ export const RBACLive = Layer.effect(
               ),
           });
 
-          const assignments = dbAssignments.map(mapPrismaRoleAssignmentToDomain);
+          const assignments = dbAssignments.map(
+            mapPrismaRoleAssignmentToDomain,
+          );
           const filteredAssignments = filterRolesByScope(assignments, scope);
 
           const hasPermission = filteredAssignments.some((a) =>
@@ -347,7 +355,9 @@ export const RBACLive = Layer.effect(
               ),
           });
 
-          const assignments = dbAssignments.map(mapPrismaRoleAssignmentToDomain);
+          const assignments = dbAssignments.map(
+            mapPrismaRoleAssignmentToDomain,
+          );
           const filteredAssignments = filterRolesByScope(assignments, scope);
 
           const hasRole = filteredAssignments.some((a) => a.role === role);

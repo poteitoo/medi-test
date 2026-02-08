@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { RESULT_STATUS_LABELS, RESULT_STATUS_VARIANTS } from "../../domain/models/result-status";
+import {
+  RESULT_STATUS_LABELS,
+  RESULT_STATUS_VARIANTS,
+} from "../../domain/models/result-status";
 import type { ResultStatus } from "../../domain/models/result-status";
 import type { TestResult } from "../../domain/models/test-result";
 import { Button } from "~/components/ui/button";
@@ -70,7 +73,8 @@ export function TestRunItemCard({
             </CardTitle>
             {latestResult && (
               <CardDescription className="mt-2">
-                最終実行: {new Date(latestResult.executedAt).toLocaleString("ja-JP")} by{" "}
+                最終実行:{" "}
+                {new Date(latestResult.executedAt).toLocaleString("ja-JP")} by{" "}
                 {latestResult.executedBy}
               </CardDescription>
             )}

@@ -71,7 +71,9 @@ export function useTestCase() {
       try {
         const program = listTestCases(projectId, options).pipe(
           Effect.provide(TestCaseManagementLayer),
-        ) as Effect.Effect<readonly TestCase[] | readonly TestCaseWithLatestRevision[]>;
+        ) as Effect.Effect<
+          readonly TestCase[] | readonly TestCaseWithLatestRevision[]
+        >;
         const result = await Effect.runPromise(program);
         setTestCases(result);
       } catch (err) {

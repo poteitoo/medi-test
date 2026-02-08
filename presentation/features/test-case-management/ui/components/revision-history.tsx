@@ -80,8 +80,7 @@ export function RevisionHistory({
                   <div
                     className={cn(
                       "relative rounded-lg border p-4 transition-colors",
-                      onSelectRevision &&
-                        "cursor-pointer hover:bg-muted/50",
+                      onSelectRevision && "cursor-pointer hover:bg-muted/50",
                       isLatest && "border-primary",
                     )}
                     onClick={() => onSelectRevision?.(revision)}

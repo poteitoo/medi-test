@@ -19,7 +19,10 @@ import { getPrismaClient } from "@shared/db/client";
  * });
  * ```
  */
-export class Database extends Context.Tag("Database")<Database, PrismaClient>() {}
+export class Database extends Context.Tag("Database")<
+  Database,
+  PrismaClient
+>() {}
 
 /**
  * Prisma Layer (Live)

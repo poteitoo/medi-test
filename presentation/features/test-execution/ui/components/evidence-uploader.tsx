@@ -2,7 +2,13 @@ import { useState, useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 
 type EvidenceFile = {
@@ -63,7 +69,9 @@ export function EvidenceUploader({
 
         // Check file size
         if (file.size > maxFileSize) {
-          setError(`${file.name}: ファイルサイズが大きすぎます（最大: ${formatFileSize(maxFileSize)}）`);
+          setError(
+            `${file.name}: ファイルサイズが大きすぎます（最大: ${formatFileSize(maxFileSize)}）`,
+          );
           continue;
         }
 
@@ -98,7 +106,8 @@ export function EvidenceUploader({
       <CardHeader>
         <CardTitle>エビデンスファイル</CardTitle>
         <CardDescription>
-          スクリーンショット、ログファイル等をアップロード（最大{maxFiles}ファイル、{formatFileSize(maxFileSize)}まで）
+          スクリーンショット、ログファイル等をアップロード（最大{maxFiles}
+          ファイル、{formatFileSize(maxFileSize)}まで）
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -113,15 +122,15 @@ export function EvidenceUploader({
             onChange={handleFileSelect}
             disabled={files.length >= maxFiles}
           />
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         {/* File List */}
         {files.length > 0 && (
           <div className="space-y-2">
-            <Label>アップロード済みファイル ({files.length}/{maxFiles})</Label>
+            <Label>
+              アップロード済みファイル ({files.length}/{maxFiles})
+            </Label>
             <div className="space-y-2">
               {files.map((file) => (
                 <div
@@ -129,7 +138,9 @@ export function EvidenceUploader({
                   className="flex items-center justify-between rounded-lg border p-2"
                 >
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{getFileExtension(file.name)}</Badge>
+                    <Badge variant="outline">
+                      {getFileExtension(file.name)}
+                    </Badge>
                     <div>
                       <p className="text-sm font-medium">{file.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -153,7 +164,8 @@ export function EvidenceUploader({
 
         {/* Placeholder for future features */}
         <p className="text-xs text-muted-foreground">
-          ℹ️ Note: 実際のファイルアップロードは未実装です。ファイル選択のUIのみ提供しています。
+          ℹ️ Note:
+          実際のファイルアップロードは未実装です。ファイル選択のUIのみ提供しています。
         </p>
       </CardContent>
     </Card>

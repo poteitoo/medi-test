@@ -47,17 +47,17 @@ await Effect.runPromise(
     runItemId: runItemIds[0],
     status: "PASS",
     executedBy: testUserId,
-  })
+  }),
 );
 
 // ✅ Fixed - add runId
 await Effect.runPromise(
   recordTestResult({
-    runId: runId,              // Required!
+    runId: runId, // Required!
     runItemId: runItemIds[0],
     status: "PASS",
     executedBy: testUserId,
-  })
+  }),
 );
 ```
 
@@ -131,11 +131,13 @@ Step 5: Verifying final state...
 ## Test Data Lifecycle
 
 Each test:
+
 1. Creates fresh test data (project, user, release, etc.)
 2. Executes the workflow
 3. Cleans up data in `afterAll`
 
 This ensures tests are:
+
 - **Isolated**: Each test has its own data
 - **Repeatable**: Tests can run multiple times
 - **Clean**: No test data left in database
@@ -168,11 +170,13 @@ Future E2E test scenarios:
 ## Performance Considerations
 
 E2E tests are slower than unit tests because they:
+
 - Use real database operations
 - Create complex test data
 - Execute full workflows
 
 Best practices:
+
 - Run E2E tests separately from unit tests
 - Use parallel execution where possible
 - Clean up test data efficiently

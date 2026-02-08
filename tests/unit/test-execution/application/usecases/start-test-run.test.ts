@@ -4,12 +4,17 @@ import { startTestRun } from "~/features/test-execution/application/usecases/sta
 import { TestRunRepository } from "~/features/test-execution/application/ports/test-run-repository";
 import { TestRun } from "~/features/test-execution/domain/models/test-run";
 import { TestRunItem } from "~/features/test-execution/domain/models/test-run-item";
-import { TestRunNotFoundError, InvalidRunStatusError } from "~/features/test-execution/domain/errors/test-run-errors";
+import {
+  TestRunNotFoundError,
+  InvalidRunStatusError,
+} from "~/features/test-execution/domain/errors/test-run-errors";
 
 /**
  * Mock TestRunRepository implementation for testing
  */
-const createMockTestRunRepository = (initialStatus: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" = "ASSIGNED") => {
+const createMockTestRunRepository = (
+  initialStatus: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED" = "ASSIGNED",
+) => {
   const mockTestRun = new TestRun({
     id: "run-123",
     runGroupId: "group-456",
@@ -70,7 +75,10 @@ const createMockTestRunRepository = (initialStatus: "ASSIGNED" | "IN_PROGRESS" |
         run: mockTestRun,
         items: [mockTestRunItem],
       }),
-    updateStatus: (runId: string, _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED") =>
+    updateStatus: (
+      runId: string,
+      _status: "ASSIGNED" | "IN_PROGRESS" | "COMPLETED",
+    ) =>
       runId === "run-123"
         ? Effect.succeed(mockTestRunInProgress)
         : Effect.fail(

@@ -139,9 +139,7 @@ export const PrismaWaiverService = Layer.effect(
                 orderBy: { expires_at: "desc" },
               }),
             catch: (error) =>
-              new Error(
-                `期限切れWaiverの取得に失敗しました: ${String(error)}`,
-              ),
+              new Error(`期限切れWaiverの取得に失敗しました: ${String(error)}`),
           });
 
           return waivers.map(
