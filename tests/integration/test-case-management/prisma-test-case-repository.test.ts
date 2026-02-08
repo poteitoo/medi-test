@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Effect } from "effect";
 import type { PrismaClient } from "@prisma/client";
 import { TestCaseRepository } from "~/features/test-case-management/application/ports/test-case-repository";
-import { PrismaTestCaseRepositoryLiveLive } from "~/features/test-case-management/infrastructure/adapters/prisma-test-case-repository";
+import { PrismaTestCaseRepositoryLive } from "~/features/test-case-management/infrastructure/adapters/prisma-test-case-repository";
 import {
   TestCaseContent,
   TestStep,

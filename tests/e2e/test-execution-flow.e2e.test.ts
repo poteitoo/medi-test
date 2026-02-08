@@ -49,13 +49,7 @@ describe("E2E: Complete Test Execution Flow", () => {
       );
     }
 
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: databaseUrl,
-        },
-      },
-    });
+    prisma = new PrismaClient();
 
     await prisma.$connect();
 
@@ -75,18 +69,31 @@ describe("E2E: Complete Test Execution Flow", () => {
     await prisma.testCaseRevision.deleteMany({});
     await prisma.testCase.deleteMany({});
     await prisma.release.deleteMany({});
-    await prisma.project.deleteMany({});
+    await prisma.roleAssignment.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.project.deleteMany({});
+    await prisma.organization.deleteMany({});
 
     await prisma.$disconnect();
   });
 
   async function setupTestData() {
+    // Create organization
+    const organization = await prisma.organization.create({
+      data: {
+        id: "e2e-org-001",
+        name: "E2E Test Organization",
+        slug: "e2e-test-org",
+      },
+    });
+
     // Create project
     const project = await prisma.project.create({
       data: {
         id: "e2e-project-001",
+        organization_id: organization.id,
         name: "E2E Test Project",
+        slug: "e2e-test-project",
         description: "End-to-end test project",
       },
     });
@@ -96,9 +103,9 @@ describe("E2E: Complete Test Execution Flow", () => {
     const user = await prisma.user.create({
       data: {
         id: "e2e-user-001",
-        username: "e2euser",
+        organization_id: organization.id,
+        name: "E2E Test User",
         email: "e2e@example.com",
-        display_name: "E2E Test User",
       },
     });
     testUserId = user.id;
@@ -108,8 +115,8 @@ describe("E2E: Complete Test Execution Flow", () => {
       data: {
         id: "e2e-release-001",
         project_id: testProjectId,
-        version: "1.0.0-e2e",
-        scheduled_date: new Date("2024-06-01"),
+        name: "v1.0.0-e2e",
+        description: "E2E test release",
       },
     });
     testReleaseId = release.id;
@@ -119,67 +126,48 @@ describe("E2E: Complete Test Execution Flow", () => {
       data: {
         id: "e2e-group-001",
         release_id: testReleaseId,
-        environment_type: "STAGING",
+        name: "E2E Test Run Group",
+        purpose: "回帰テスト",
         status: "NOT_STARTED",
       },
     });
     testRunGroupId = runGroup.id;
 
-    // Create test cases
-    const testCases = await Promise.all([
-      prisma.testCase.create({
-        data: {
-          id: "e2e-case-001",
-          project_id: testProjectId,
-          identifier: "E2E-TC-001",
-        },
-      }),
-      prisma.testCase.create({
-        data: {
-          id: "e2e-case-002",
-          project_id: testProjectId,
-          identifier: "E2E-TC-002",
-        },
-      }),
-      prisma.testCase.create({
-        data: {
-          id: "e2e-case-003",
-          project_id: testProjectId,
-          identifier: "E2E-TC-003",
-        },
-      }),
-      prisma.testCase.create({
-        data: {
-          id: "e2e-case-004",
-          project_id: testProjectId,
-          identifier: "E2E-TC-004",
-        },
-      }),
-    ]);
-
-    // Create test case revisions
+    // Create test cases with revisions
     testCaseRevisionIds = await Promise.all(
-      testCases.map(async (testCase, index) => {
+      [1, 2, 3, 4].map(async (index) => {
+        const testCase = await prisma.testCase.create({
+          data: {
+            id: `e2e-case-${String(index).padStart(3, "0")}`,
+            project_id: testProjectId,
+          },
+        });
+
         const revision = await prisma.testCaseRevision.create({
           data: {
-            id: `e2e-case-rev-${String(index + 1).padStart(3, "0")}`,
-            case_id: testCase.id,
-            version: 1,
-            title: `E2E Test Case ${index + 1}`,
-            committed_by: testUserId,
-            committed_at: new Date("2024-01-01"),
+            id: `e2e-case-rev-${String(index).padStart(3, "0")}`,
+            case_stable_id: testCase.id,
+            rev: 1,
+            title: `E2E Test Case ${index}`,
+            content: {
+              steps: ["Step 1", "Step 2"],
+              expected_result: "Expected result",
+              tags: [],
+              priority: "HIGH",
+              environment: "STAGING",
+            },
+            created_by: testUserId,
           },
         });
         return revision.id;
       }),
-    ).then((ids) => ids);
+    );
 
     // Create test scenario list
     const testList = await prisma.testScenarioList.create({
       data: {
         id: "e2e-list-001",
         project_id: testProjectId,
-        title: "E2E Test Scenario List",
       },
     });
 
@@ -187,27 +175,14 @@ describe("E2E: Complete Test Execution Flow", () => {
     const listRevision = await prisma.testScenarioListRevision.create({
       data: {
         id: "e2e-list-rev-001",
-        list_id: testList.id,
-        version: 1,
-        committed_by: testUserId,
-        committed_at: new Date("2024-01-01"),
+        list_stable_id: testList.id,
+        rev: 1,
+        title: "E2E Test Scenario List",
+        description: "End-to-end test scenario list",
+        created_by: testUserId,
       },
     });
     testListRevisionId = listRevision.id;
-
-    // Create list items
-    await Promise.all(
-      testCaseRevisionIds.map((caseRevId, index) =>
-        prisma.testScenarioListItem.create({
-          data: {
-            id: `e2e-list-item-${String(index + 1).padStart(3, "0")}`,
-            list_revision_id: listRevision.id,
-            case_revision_id: caseRevId,
-            order: index,
-          },
-        }),
-      ),
-    );
   }
 
   it("should complete full test execution workflow", async () => {
@@ -247,17 +222,19 @@ describe("E2E: Complete Test Execution Flow", () => {
 
     // Result 1: PASS
     const result1Program = recordTestResult({
+      runId: runId,
       runItemId: runItemIds[0],
       status: "PASS",
       executedBy: testUserId,
     }).pipe(Effect.provide(TestExecutionLayer));
 
     const result1 = await Effect.runPromise(result1Program);
-    expect(result1.result.status).toBe("PASS");
+    expect(result1.status).toBe("PASS");
     console.log(`✓ Result 1 recorded: PASS`);
 
     // Result 2: FAIL with bug link
     const result2Program = recordTestResult({
+      runId: runId,
       runItemId: runItemIds[1],
       status: "FAIL",
       evidence: {
@@ -274,12 +251,13 @@ describe("E2E: Complete Test Execution Flow", () => {
     }).pipe(Effect.provide(TestExecutionLayer));
 
     const result2 = await Effect.runPromise(result2Program);
-    expect(result2.result.status).toBe("FAIL");
-    expect(result2.result.bugLinks).toHaveLength(1);
+    expect(result2.status).toBe("FAIL");
+    expect(result2.bugLinks).toHaveLength(1);
     console.log(`✓ Result 2 recorded: FAIL with bug link`);
 
     // Result 3: BLOCKED
     const result3Program = recordTestResult({
+      runId: runId,
       runItemId: runItemIds[2],
       status: "BLOCKED",
       bugLinks: [
@@ -293,18 +271,19 @@ describe("E2E: Complete Test Execution Flow", () => {
     }).pipe(Effect.provide(TestExecutionLayer));
 
     const result3 = await Effect.runPromise(result3Program);
-    expect(result3.result.status).toBe("BLOCKED");
+    expect(result3.status).toBe("BLOCKED");
     console.log(`✓ Result 3 recorded: BLOCKED`);
 
     // Result 4: SKIPPED
     const result4Program = recordTestResult({
+      runId: runId,
       runItemId: runItemIds[3],
       status: "SKIPPED",
       executedBy: testUserId,
     }).pipe(Effect.provide(TestExecutionLayer));
 
     const result4 = await Effect.runPromise(result4Program);
-    expect(result4.result.status).toBe("SKIPPED");
+    expect(result4.status).toBe("SKIPPED");
     console.log(`✓ Result 4 recorded: SKIPPED`);
 
     // Step 4: Complete test run
@@ -338,9 +317,9 @@ describe("E2E: Complete Test Execution Flow", () => {
     const finalRun = await prisma.testRun.findUnique({
       where: { id: runId },
       include: {
-        run_items: {
+        items: {
           include: {
-            test_results: {
+            results: {
               orderBy: { executed_at: "desc" },
               take: 1,
             },
@@ -350,10 +329,8 @@ describe("E2E: Complete Test Execution Flow", () => {
     });
 
     expect(finalRun?.status).toBe("COMPLETED");
-    expect(finalRun?.run_items).toHaveLength(4);
-    expect(
-      finalRun?.run_items.every((item) => item.test_results.length > 0),
-    ).toBe(true);
+    expect(finalRun?.items).toHaveLength(4);
+    expect(finalRun?.items.every((item) => item.results.length > 0)).toBe(true);
     console.log(`✓ Final state verified in database`);
 
     console.log("\n✅ Complete test execution flow completed successfully!");
@@ -382,6 +359,7 @@ describe("E2E: Complete Test Execution Flow", () => {
     // Record only 2 out of 4 results
     await Effect.runPromise(
       recordTestResult({
+        runId: runId,
         runItemId: runItemIds[0],
         status: "PASS",
         executedBy: testUserId,
@@ -390,6 +368,7 @@ describe("E2E: Complete Test Execution Flow", () => {
 
     await Effect.runPromise(
       recordTestResult({
+        runId: runId,
         runItemId: runItemIds[1],
         status: "FAIL",
         executedBy: testUserId,

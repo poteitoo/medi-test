@@ -3,6 +3,7 @@ import type {
   RoleType,
   RoleAssignment,
 } from "@shared/auth/domain/models/role-assignment";
+import { UnauthorizedError } from "@shared/auth/application/ports/auth-service";
 
 /**
  * Permission Errors
@@ -149,7 +150,7 @@ export class RBACService extends Context.Tag("RBACService")<
       userId: string,
       organizationId?: string,
       projectId?: string,
-    ) => Effect.Effect<readonly RoleAssignment[], never>;
+    ) => Effect.Effect<readonly RoleAssignment[], Error>;
 
     /**
      * ユーザーが指定のロールを持つかチェック
@@ -158,7 +159,7 @@ export class RBACService extends Context.Tag("RBACService")<
       userId: string,
       role: RoleType,
       scope?: { organizationId?: string; projectId?: string },
-    ) => Effect.Effect<boolean, never>;
+    ) => Effect.Effect<boolean, Error>;
 
     /**
      * ユーザーが指定の権限を持つかチェック
@@ -167,7 +168,7 @@ export class RBACService extends Context.Tag("RBACService")<
       userId: string,
       permission: Permission,
       scope?: { organizationId?: string; projectId?: string },
-    ) => Effect.Effect<boolean, never>;
+    ) => Effect.Effect<boolean, Error>;
 
     /**
      * 権限を要求（なければエラー）
@@ -175,7 +176,7 @@ export class RBACService extends Context.Tag("RBACService")<
     readonly requirePermission: (
       permission: Permission,
       scope?: { organizationId?: string; projectId?: string },
-    ) => Effect.Effect<void, PermissionDeniedError>;
+    ) => Effect.Effect<void, UnauthorizedError | PermissionDeniedError>;
 
     /**
      * ロールを要求（なければエラー）
@@ -183,7 +184,7 @@ export class RBACService extends Context.Tag("RBACService")<
     readonly requireRole: (
       role: RoleType,
       scope?: { organizationId?: string; projectId?: string },
-    ) => Effect.Effect<void, PermissionDeniedError>;
+    ) => Effect.Effect<void, UnauthorizedError | PermissionDeniedError>;
 
     /**
      * ロールにロールを割り当て

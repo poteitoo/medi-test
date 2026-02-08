@@ -57,7 +57,7 @@ model User {
   email           String   @unique
   name            String
   avatar_url      String?
-  oidc_sub        String?  // OIDC subject identifier
+  oidc_sub        String?  @unique // OIDC subject identifier
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
@@ -77,7 +77,6 @@ model User {
 
   @@index([organization_id])
   @@index([email])
-  @@index([oidc_sub])
 }
 
 enum RoleType {

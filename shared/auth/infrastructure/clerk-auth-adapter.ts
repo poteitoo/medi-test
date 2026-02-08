@@ -120,7 +120,7 @@ function mapClerkUserToDomainUser(
 async function syncUserToDatabase(user: User): Promise<User> {
   const dbUser = await prisma.user.upsert({
     where: {
-      oidc_sub: user.oidcSub ?? user.id,
+      email: user.email,
     },
     update: {
       name: user.name,

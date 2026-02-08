@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
 import { PrismaClient } from "@prisma/client";
 import { TestResultRepository } from "~/features/test-execution/application/ports/test-result-repository";
-import { PrismaTestResultRepositoryLive } from "~/features/test-execution/infrastructure/adapters/prisma-test-result-repository";
+import { PrismaTestResultRepository } from "~/features/test-execution/infrastructure/adapters/prisma-test-result-repository";
+import { createTestPrismaLayer } from "@shared/db/layers/prisma-layer";
 
 /**
  * Integration Tests for PrismaTestResultRepository
@@ -28,13 +29,7 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       );
     }
 
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: databaseUrl,
-        },
-      },
-    });
+    prisma = new PrismaClient();
 
     await prisma.$connect();
   });
@@ -54,14 +49,26 @@ describe("PrismaTestResultRepository Integration Tests", () => {
     await prisma.testCaseRevision.deleteMany({});
     await prisma.testCase.deleteMany({});
     await prisma.release.deleteMany({});
-    await prisma.project.deleteMany({});
+    await prisma.roleAssignment.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.project.deleteMany({});
+    await prisma.organization.deleteMany({});
 
     // Create test data
+    const organization = await prisma.organization.create({
+      data: {
+        id: "test-org-001",
+        name: "Test Organization",
+        slug: "test-org",
+      },
+    });
+
     const project = await prisma.project.create({
       data: {
         id: "test-project-001",
+        organization_id: organization.id,
         name: "Test Project",
+        slug: "test-project",
         description: "Integration test project",
       },
     });
@@ -69,9 +76,9 @@ describe("PrismaTestResultRepository Integration Tests", () => {
     const user = await prisma.user.create({
       data: {
         id: "test-user-001",
-        username: "testuser",
+        organization_id: organization.id,
+        name: "Test User",
         email: "test@example.com",
-        display_name: "Test User",
       },
     });
     testUserId = user.id;
@@ -80,8 +87,8 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       data: {
         id: "test-release-001",
         project_id: project.id,
-        version: "1.0.0",
-        scheduled_date: new Date("2024-06-01"),
+        name: "v1.0.0",
+        description: "Test release",
       },
     });
 
@@ -89,7 +96,8 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       data: {
         id: "test-group-001",
         release_id: release.id,
-        environment_type: "STAGING",
+        name: "Test Run Group",
+        purpose: "統合テスト",
         status: "NOT_STARTED",
       },
     });
@@ -98,17 +106,16 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       data: {
         id: "test-list-001",
         project_id: project.id,
-        title: "Test List",
       },
     });
 
     const listRevision = await prisma.testScenarioListRevision.create({
       data: {
         id: "test-list-rev-001",
-        list_id: testList.id,
-        version: 1,
-        committed_by: testUserId,
-        committed_at: new Date("2024-01-01"),
+        list_stable_id: testList.id,
+        rev: 1,
+        title: "Test List",
+        created_by: testUserId,
       },
     });
 
@@ -127,18 +134,20 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       data: {
         id: "test-case-001",
         project_id: project.id,
-        identifier: "TC-001",
       },
     });
 
     const caseRevision = await prisma.testCaseRevision.create({
       data: {
         id: "test-case-rev-001",
-        case_id: testCase.id,
-        version: 1,
+        case_stable_id: testCase.id,
+        rev: 1,
         title: "Test Case 1",
-        committed_by: testUserId,
-        committed_at: new Date("2024-01-01"),
+        content: {
+          steps: ["Step 1"],
+          expected_result: "Expected result",
+        },
+        created_by: testUserId,
       },
     });
 
@@ -164,7 +173,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       });
 
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -191,7 +203,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       });
 
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -225,7 +240,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       });
 
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -260,7 +278,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       const testResultRepo = yield* TestResultRepository;
       const results = yield* testResultRepo.findByRunItemId(testRunItemId);
       return results;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const results = await Effect.runPromise(program);
 
@@ -293,7 +314,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       const testResultRepo = yield* TestResultRepository;
       const result = yield* testResultRepo.findLatestByRunItemId(testRunItemId);
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -307,7 +331,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       const testResultRepo = yield* TestResultRepository;
       const result = yield* testResultRepo.findLatestByRunItemId(testRunItemId);
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -349,7 +376,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       const testResultRepo = yield* TestResultRepository;
       const results = yield* testResultRepo.findByRunId(testRunId);
       return results;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const results = await Effect.runPromise(program);
 
@@ -376,7 +406,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       });
 
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -395,7 +428,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
       });
 
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
 
@@ -415,7 +451,10 @@ describe("PrismaTestResultRepository Integration Tests", () => {
         executedBy: testUserId,
       });
       return result;
-    }).pipe(Effect.provide(PrismaTestResultRepositoryLive));
+    }).pipe(
+      Effect.provide(PrismaTestResultRepository),
+      Effect.provide(createTestPrismaLayer(prisma)),
+    );
 
     const result = await Effect.runPromise(program);
     const afterCreate = new Date();

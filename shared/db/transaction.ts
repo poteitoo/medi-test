@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Duration, Option } from "effect";
 import type { PrismaClient } from "@prisma/client";
 import { Database } from "@shared/db/layers/prisma-layer";
 
@@ -50,7 +50,7 @@ export class TransactionError extends Error {
 export type TransactionCallback<A, E> = (
   tx: Omit<
     PrismaClient,
-    "$connect" | "$disconnect" | "$on" | "$transaction" | "$use"
+    "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
   >,
 ) => Effect.Effect<A, E, never>;
 
@@ -154,13 +154,15 @@ export function withTransactionTimeout<A, E>(
   timeoutMs: number,
 ): Effect.Effect<A, E | TransactionError, Database> {
   return withTransaction(callback).pipe(
-    Effect.timeout(timeoutMs),
-    Effect.flatMap((option) =>
-      option._tag === "Some"
-        ? Effect.succeed(option.value)
-        : Effect.fail(
+    Effect.timeoutOption(Duration.millis(timeoutMs)),
+    Effect.flatMap(
+      Option.match({
+        onNone: () =>
+          Effect.fail(
             new TransactionError(`Transaction timeout after ${timeoutMs}ms`),
           ),
+        onSome: (result) => Effect.succeed(result),
+      }),
     ),
   );
 }

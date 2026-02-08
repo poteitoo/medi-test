@@ -7,6 +7,8 @@ import { WaiverService } from "~/features/release-gate/application/ports/waiver-
 import { Release } from "~/features/release-gate/domain/models/release";
 import { GateViolation } from "~/features/release-gate/domain/models/gate-violation";
 import { DEFAULT_GATE_CONDITIONS } from "~/features/release-gate/domain/models/gate-condition";
+import { ReleaseNotFoundError } from "~/features/release-gate/domain/errors/release-errors";
+import { WaiverNotFoundError } from "~/features/release-gate/domain/errors/waiver-errors";
 
 describe("evaluateGate use case", () => {
   it("should evaluate gate conditions and return passed status when no violations", async () => {
@@ -24,11 +26,15 @@ describe("evaluateGate use case", () => {
           }),
         ),
       findByProjectId: () => Effect.succeed([]),
-      create: () => Effect.fail(new Error("Not implemented")),
-      updateStatus: () => Effect.fail(new Error("Not implemented")),
-      createBaseline: () => Effect.fail(new Error("Not implemented")),
+      create: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      updateStatus: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      createBaseline: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
       findBaselines: () => Effect.succeed([]),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      delete: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
     });
 
     // Mock GateEvaluationService (all conditions pass)
@@ -50,10 +56,13 @@ describe("evaluateGate use case", () => {
 
     // Mock WaiverService
     const MockWaiverService = Layer.succeed(WaiverService, {
-      findById: () => Effect.fail(new Error("Not implemented")),
+      findById: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findByReleaseId: () => Effect.succeed([]),
-      issue: () => Effect.fail(new Error("Not implemented")),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      issue: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
+      delete: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findExpired: () => Effect.succeed([]),
       isValid: () => Effect.succeed(true),
       findValidWaiverForTarget: () => Effect.succeed(null),
@@ -97,11 +106,15 @@ describe("evaluateGate use case", () => {
           }),
         ),
       findByProjectId: () => Effect.succeed([]),
-      create: () => Effect.fail(new Error("Not implemented")),
-      updateStatus: () => Effect.fail(new Error("Not implemented")),
-      createBaseline: () => Effect.fail(new Error("Not implemented")),
+      create: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      updateStatus: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      createBaseline: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
       findBaselines: () => Effect.succeed([]),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      delete: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
     });
 
     // Mock GateEvaluationService (with violations)
@@ -123,10 +136,13 @@ describe("evaluateGate use case", () => {
 
     // Mock WaiverService
     const MockWaiverService = Layer.succeed(WaiverService, {
-      findById: () => Effect.fail(new Error("Not implemented")),
+      findById: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findByReleaseId: () => Effect.succeed([]),
-      issue: () => Effect.fail(new Error("Not implemented")),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      issue: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
+      delete: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findExpired: () => Effect.succeed([]),
       isValid: () => Effect.succeed(true),
       findValidWaiverForTarget: () => Effect.succeed(null),
@@ -164,15 +180,20 @@ describe("evaluateGate use case", () => {
           }),
         ),
       findByProjectId: () => Effect.succeed([]),
-      create: () => Effect.fail(new Error("Not implemented")),
-      updateStatus: () => Effect.fail(new Error("Not implemented")),
-      createBaseline: () => Effect.fail(new Error("Not implemented")),
+      create: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      updateStatus: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
+      createBaseline: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
       findBaselines: () => Effect.succeed([]),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      delete: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
     });
 
     const MockGateEvaluationService = Layer.succeed(GateEvaluationService, {
-      evaluate: () => Effect.fail(new Error("Not implemented")),
+      evaluate: () =>
+        Effect.fail(new ReleaseNotFoundError({ message: "Not implemented" })),
       calculateCoverage: () => Effect.succeed(85),
       checkAllTestsPass: () => Effect.succeed(true),
       checkNoCriticalBugs: () => Effect.succeed(true),
@@ -181,10 +202,13 @@ describe("evaluateGate use case", () => {
     });
 
     const MockWaiverService = Layer.succeed(WaiverService, {
-      findById: () => Effect.fail(new Error("Not implemented")),
+      findById: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findByReleaseId: () => Effect.succeed([]),
-      issue: () => Effect.fail(new Error("Not implemented")),
-      delete: () => Effect.fail(new Error("Not implemented")),
+      issue: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
+      delete: () =>
+        Effect.fail(new WaiverNotFoundError({ message: "Not implemented" })),
       findExpired: () => Effect.succeed([]),
       isValid: () => Effect.succeed(true),
       findValidWaiverForTarget: () => Effect.succeed(null),
