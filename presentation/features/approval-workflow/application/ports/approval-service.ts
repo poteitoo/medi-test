@@ -2,100 +2,127 @@ import { Context, Effect } from "effect";
 import type {
   Approval,
   ApprovalObjectType,
+  EvidenceLink,
 } from "../../domain/models/approval";
-
-/**
- * 承認エラー
- */
-export class ApprovalNotFoundError extends Error {
-  readonly _tag = "ApprovalNotFoundError";
-  constructor(message: string = "承認情報が見つかりません") {
-    super(message);
-    this.name = "ApprovalNotFoundError";
-  }
-}
-
-export class ApprovalCreationError extends Error {
-  readonly _tag = "ApprovalCreationError";
-  constructor(message: string) {
-    super(message);
-    this.name = "ApprovalCreationError";
-  }
-}
+import type {
+  ApprovalNotFoundError,
+  ApprovalValidationError,
+  AlreadyApprovedException,
+} from "../../domain/errors/approval-errors";
 
 /**
  * ApprovalService Port
  *
- * 承認ワークフローのデータアクセスを抽象化するポート
+ * @description
+ * 承認ワークフローのデータアクセスを抽象化するポートです。
+ * テストケース、シナリオ、リリースなど様々なオブジェクトの承認・却下を管理します。
+ *
+ * @example
+ * ```typescript
+ * const program = Effect.gen(function* () {
+ *   const service = yield* ApprovalService;
+ *
+ *   // 承認を作成
+ *   const approval = yield* service.createApproval({
+ *     objectType: "CASE_REVISION",
+ *     objectId: "revision-123",
+ *     step: 1,
+ *     decision: "APPROVED",
+ *     approverId: "user-456",
+ *     comment: "問題なし",
+ *     evidenceLinks: [{ url: "https://example.com", title: "テスト結果" }]
+ *   });
+ *
+ *   // 承認履歴を取得
+ *   const approvals = yield* service.getApprovals("CASE_REVISION", "revision-123");
+ * });
+ * ```
  */
 export class ApprovalService extends Context.Tag("ApprovalService")<
   ApprovalService,
   {
     /**
-     * 承認情報をIDで取得
+     * 承認を作成
+     *
+     * @description
+     * 新しい承認または却下を作成します。
+     * 同じステップで同じユーザーが既に承認している場合はAlreadyApprovedExceptionを返します。
+     *
+     * @param data - 承認データ
+     * @returns 作成された承認
      */
-    readonly findById: (
-      approvalId: string,
-    ) => Effect.Effect<Approval, ApprovalNotFoundError>;
+    readonly createApproval: (data: {
+      readonly objectType: ApprovalObjectType;
+      readonly objectId: string;
+      readonly step: number;
+      readonly decision: "APPROVED" | "REJECTED";
+      readonly approverId: string;
+      readonly comment?: string;
+      readonly evidenceLinks?: EvidenceLink[];
+    }) => Effect.Effect<Approval, ApprovalValidationError>;
 
     /**
      * オブジェクトの承認履歴を取得
+     *
+     * @description
+     * 指定されたオブジェクトの承認履歴を新しい順に取得します。
+     *
+     * @param objectType - オブジェクトタイプ
+     * @param objectId - オブジェクトID
+     * @returns 承認履歴の配列
      */
-    readonly findByObjectId: (
-      objectId: string,
+    readonly getApprovals: (
       objectType: ApprovalObjectType,
-    ) => Effect.Effect<readonly Approval[], Error>;
+      objectId: string,
+    ) => Effect.Effect<readonly Approval[], never>;
 
     /**
      * 承認者の承認履歴を取得
+     *
+     * @description
+     * 指定されたユーザーが行った承認履歴を取得します。
+     *
+     * @param approverId - 承認者ID
+     * @returns 承認履歴の配列
      */
-    readonly findByApproverId: (
+    readonly getApprovalsByApprover: (
       approverId: string,
-    ) => Effect.Effect<readonly Approval[], Error>;
+    ) => Effect.Effect<readonly Approval[], never>;
 
     /**
-     * 承認を作成
+     * 承認が存在するかチェック
+     *
+     * @description
+     * 指定されたステップで指定されたユーザーが既に承認または却下しているかチェックします。
+     * 二重承認を防ぐために使用します。
+     *
+     * @param objectType - オブジェクトタイプ
+     * @param objectId - オブジェクトID
+     * @param step - 承認ステップ
+     * @param approverId - 承認者ID
+     * @returns 既に承認がある場合true
      */
-    readonly approve: (input: {
-      readonly objectId: string;
-      readonly objectType: ApprovalObjectType;
-      readonly approverId: string;
-      readonly step?: number;
-      readonly comment?: string;
-    }) => Effect.Effect<Approval, ApprovalCreationError>;
-
-    /**
-     * 却下を作成
-     */
-    readonly reject: (input: {
-      readonly objectId: string;
-      readonly objectType: ApprovalObjectType;
-      readonly approverId: string;
-      readonly step?: number;
-      readonly comment?: string;
-    }) => Effect.Effect<Approval, ApprovalCreationError>;
-
-    /**
-     * 承認情報を削除
-     */
-    readonly delete: (
-      approvalId: string,
-    ) => Effect.Effect<void, ApprovalNotFoundError>;
-
-    /**
-     * オブジェクトが承認されているかチェック
-     */
-    readonly isApproved: (
-      objectId: string,
+    readonly hasApproval: (
       objectType: ApprovalObjectType,
-    ) => Effect.Effect<boolean, Error>;
+      objectId: string,
+      step: number,
+      approverId: string,
+    ) => Effect.Effect<boolean, never>;
 
     /**
-     * オブジェクトが却下されているかチェック
+     * 最新の承認を取得
+     *
+     * @description
+     * 指定されたオブジェクトの最新の承認を取得します。
+     * 承認履歴がない場合はnullを返します。
+     *
+     * @param objectType - オブジェクトタイプ
+     * @param objectId - オブジェクトID
+     * @returns 最新の承認、または null
      */
-    readonly isRejected: (
-      objectId: string,
+    readonly getLatestApproval: (
       objectType: ApprovalObjectType,
-    ) => Effect.Effect<boolean, Error>;
+      objectId: string,
+    ) => Effect.Effect<Approval | null, never>;
   }
 >() {}

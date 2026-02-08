@@ -1,149 +1,166 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Effect } from "effect";
-import type { TestCaseContent } from "../../domain/models/test-case-content";
+import type { TestCaseRevision } from "../../domain/models/test-case-revision";
 import { TestCaseManagementLayer } from "../../infrastructure/layers/test-case-layer";
-import { createTestCase } from "../../application/usecases/create-test-case";
-import { createTestCaseRevision } from "../../application/usecases/create-test-case-revision";
-import { submitForReview } from "../../application/usecases/submit-for-review";
+import { getTestCaseRevisionHistory } from "../../application/usecases/get-revision-history";
+import { TestCaseRepository } from "../../application/ports/test-case-repository";
 
 /**
- * リビジョン管理フックの戻り値
- */
-type UseRevisionManagementResult = {
-  /**
-   * テストケース作成関数
-   */
-  createCase: (input: {
-    projectId: string;
-    title: string;
-    content: TestCaseContent;
-    createdBy: string;
-  }) => Promise<void>;
-
-  /**
-   * リビジョン作成関数
-   */
-  createRevision: (input: {
-    caseId: string;
-    title: string;
-    content: TestCaseContent;
-    createdBy: string;
-  }) => Promise<void>;
-
-  /**
-   * レビュー提出関数
-   */
-  submitReview: (revisionId: string) => Promise<void>;
-
-  /**
-   * 実行中フラグ
-   */
-  isSubmitting: boolean;
-
-  /**
-   * エラー
-   */
-  error: Error | null;
-};
-
-/**
- * リビジョン管理フック
+ * リビジョン管理用React Hook
  *
- * テストケースとリビジョンの作成・管理機能を提供する
+ * テストケースのリビジョン履歴の取得、最新リビジョンの取得、
+ * リビジョン間の比較などの操作を提供します。
  *
  * @example
- * const { createCase, createRevision, submitReview, isSubmitting } = useRevisionManagement();
+ * ```tsx
+ * function RevisionHistory() {
+ *   const {
+ *     revisions,
+ *     latestRevision,
+ *     loading,
+ *     error,
+ *     fetchRevisionHistory,
+ *     fetchLatestRevision,
+ *   } = useRevisionManagement();
  *
- * await createCase({
- *   projectId: "project-123",
- *   title: "ログイン機能のテスト",
- *   content: new TestCaseContent({...}),
- *   createdBy: "user-456",
- * });
+ *   useEffect(() => {
+ *     fetchRevisionHistory("case-123");
+ *   }, []);
+ *
+ *   return (
+ *     <div>
+ *       <h2>最新: {latestRevision?.title}</h2>
+ *       <ul>
+ *         {revisions.map(rev => (
+ *           <li key={rev.id}>rev.{rev.rev}: {rev.title}</li>
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   );
+ * }
+ * ```
  */
-export function useRevisionManagement(): UseRevisionManagementResult {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function useRevisionManagement() {
+  const [revisions, setRevisions] = useState<readonly TestCaseRevision[]>([]);
+  const [latestRevision, setLatestRevision] = useState<TestCaseRevision | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const createCase = async (input: {
-    projectId: string;
-    title: string;
-    content: TestCaseContent;
-    createdBy: string;
-  }) => {
-    setIsSubmitting(true);
+  /**
+   * テストケースのリビジョン履歴を取得
+   *
+   * 新しい順（rev降順）でソートされたリビジョン一覧を取得します。
+   *
+   * @param caseId - テストケースID
+   * @param options - 取得オプション
+   * @returns Promise<void>
+   */
+  const fetchRevisionHistory = useCallback(
+    async (
+      caseId: string,
+      options?: {
+        readonly limit?: number;
+        readonly offset?: number;
+      },
+    ) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const program = getTestCaseRevisionHistory(caseId, options).pipe(
+          Effect.provide(TestCaseManagementLayer),
+        ) as Effect.Effect<readonly TestCaseRevision[]>;
+        const result = await Effect.runPromise(program);
+        setRevisions(result);
+        // 最新リビジョンも更新（配列の最初の要素）
+        if (result.length > 0) {
+          setLatestRevision(result[0]);
+        }
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  /**
+   * テストケースの最新リビジョンのみを取得
+   *
+   * @param caseId - テストケースID
+   * @returns Promise<TestCaseRevision | null>
+   */
+  const fetchLatestRevision = useCallback(async (caseId: string) => {
+    setLoading(true);
     setError(null);
-
     try {
-      const program = createTestCase(input).pipe(
+      const program = TestCaseRepository.pipe(
+        Effect.andThen((repo) => repo.findLatestRevision(caseId)),
         Effect.provide(TestCaseManagementLayer),
-      );
-
-      await Effect.runPromise(program);
+      ) as Effect.Effect<TestCaseRevision | null>;
+      const result = await Effect.runPromise(program);
+      setLatestRevision(result);
+      return result;
     } catch (err) {
-      const error =
-        err instanceof Error
-          ? err
-          : new Error("テストケースの作成に失敗しました");
-      setError(error);
-      throw error;
+      setError(err as Error);
+      return null;
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const createRevision = async (input: {
-    caseId: string;
-    title: string;
-    content: TestCaseContent;
-    createdBy: string;
-  }) => {
-    setIsSubmitting(true);
-    setError(null);
+  /**
+   * 2つのリビジョン間の差分を取得
+   *
+   * 現在は単純に両方のリビジョンを取得します。
+   * 将来的には差分計算ロジックを実装予定。
+   *
+   * @param rev1Id - 比較元リビジョンID
+   * @param rev2Id - 比較先リビジョンID
+   * @returns Promise<{ rev1: TestCaseRevision; rev2: TestCaseRevision } | null>
+   */
+  const compareRevisions = useCallback(
+    async (rev1Id: string, rev2Id: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const program = TestCaseRepository.pipe(
+          Effect.andThen((repo) =>
+            Effect.all([
+              repo.findRevisionById(rev1Id),
+              repo.findRevisionById(rev2Id),
+            ]),
+          ),
+          Effect.andThen(([rev1, rev2]) => {
+            if (rev1 === null || rev2 === null) {
+              return Effect.succeed(null);
+            }
+            return Effect.succeed({ rev1, rev2 });
+          }),
+          Effect.provide(TestCaseManagementLayer),
+        ) as Effect.Effect<{ rev1: TestCaseRevision; rev2: TestCaseRevision } | null>;
 
-    try {
-      const program = createTestCaseRevision(input).pipe(
-        Effect.provide(TestCaseManagementLayer),
-      );
-
-      await Effect.runPromise(program);
-    } catch (err) {
-      const error =
-        err instanceof Error
-          ? err
-          : new Error("リビジョンの作成に失敗しました");
-      setError(error);
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const submitReview = async (revisionId: string) => {
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const program = submitForReview({ revisionId }).pipe(
-        Effect.provide(TestCaseManagementLayer),
-      );
-
-      await Effect.runPromise(program);
-    } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("レビュー提出に失敗しました");
-      setError(error);
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        const result = await Effect.runPromise(program);
+        return result;
+      } catch (err) {
+        setError(err as Error);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   return {
-    createCase,
-    createRevision,
-    submitReview,
-    isSubmitting,
+    revisions,
+    latestRevision,
+    loading,
     error,
+    fetchRevisionHistory,
+    fetchLatestRevision,
+    compareRevisions,
   };
 }

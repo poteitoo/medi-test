@@ -3,7 +3,7 @@ import { data } from "react-router";
 import { Effect, Layer } from "effect";
 import { PrismaLayer } from "@shared/db/layers/prisma-layer";
 import { TestCaseManagementLayer } from "~/features/test-case-management/infrastructure/layers/test-case-layer";
-import { PrismaApprovalService } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
+import { PrismaApprovalServiceLive } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
 import { approveRevision } from "~/features/approval-workflow/application/usecases/approve-revision";
 import { rejectRevision } from "~/features/approval-workflow/application/usecases/reject-revision";
 import { z } from "zod";
@@ -23,7 +23,7 @@ const approvalRequestSchema = z.object({
  */
 const ApprovalWorkflowLayer = Layer.mergeAll(
   TestCaseManagementLayer,
-  PrismaApprovalService,
+  PrismaApprovalServiceLive,
 ).pipe(Layer.provide(PrismaLayer));
 
 /**

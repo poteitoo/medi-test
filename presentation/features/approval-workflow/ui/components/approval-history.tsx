@@ -1,4 +1,4 @@
-import { Check, X, User, Clock, MessageSquare } from "lucide-react";
+import { Check, X, User, Clock, MessageSquare, ExternalLink } from "lucide-react";
 import { formatDateTime } from "~/lib/utils/date";
 import type { Approval } from "../../domain/models/approval";
 import { APPROVAL_ACTION_LABELS } from "../../domain/models/approval";
@@ -123,6 +123,40 @@ export function ApprovalHistory({
                     コメント
                   </div>
                   <p className="whitespace-pre-wrap">{approval.comment}</p>
+                </div>
+              )}
+
+              {/* 証拠リンク */}
+              {approval.hasEvidence() && approval.evidenceLinks && (
+                <div
+                  className={`mt-3 rounded border p-3 text-sm ${
+                    isApproved
+                      ? "border-green-200 bg-white"
+                      : "border-red-200 bg-white"
+                  }`}
+                >
+                  <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <ExternalLink className="h-3 w-3" />
+                    証拠リンク
+                  </div>
+                  <div className="space-y-1.5">
+                    {approval.evidenceLinks.map((link, linkIndex) => (
+                      <a
+                        key={linkIndex}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-1.5 text-sm hover:underline ${
+                          isApproved
+                            ? "text-green-700 hover:text-green-800"
+                            : "text-red-700 hover:text-red-800"
+                        }`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>{link.title || link.url}</span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -3,7 +3,7 @@ import { PrismaLayer } from "@shared/db/layers/prisma-layer";
 import { PrismaReleaseRepository } from "../adapters/prisma-release-repository";
 import { GateEvaluationServiceLive } from "../adapters/gate-evaluation-service-impl";
 import { PrismaWaiverService } from "../adapters/prisma-waiver-service";
-import { PrismaApprovalService } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
+import { PrismaApprovalServiceLive } from "~/features/approval-workflow/infrastructure/adapters/prisma-approval-service";
 
 /**
  * ReleaseLayer
@@ -23,5 +23,5 @@ export const ReleaseLayer = Layer.mergeAll(
   PrismaReleaseRepository,
   GateEvaluationServiceLive,
   PrismaWaiverService,
-  PrismaApprovalService,
+  PrismaApprovalServiceLive,
 ).pipe(Layer.provide(PrismaLayer));

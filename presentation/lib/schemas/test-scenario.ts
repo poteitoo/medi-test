@@ -1,46 +1,90 @@
 import { z } from "zod";
+import { uuidSchema } from "~/lib/schemas/common";
 
 /**
- * テストシナリオケース参照スキーマ
+ * テストシナリオ項目スキーマ
+ *
+ * シナリオ内の個別テストケースリビジョン参照を検証します。
+ *
+ * @example
+ * ```tsx
+ * import { useForm } from "react-hook-form";
+ * import { zodResolver } from "@hookform/resolvers/zod";
+ *
+ * const form = useForm({
+ *   resolver: zodResolver(testScenarioItemSchema),
+ *   defaultValues: {
+ *     caseRevisionId: "",
+ *     order: 1,
+ *     optionalFlag: false,
+ *   },
+ * });
+ * ```
  */
-export const testScenarioCaseRefSchema = z.object({
+export const testScenarioItemSchema = z.object({
   /**
-   * テストケースID
+   * テストケースリビジョンID
    */
-  caseId: z
-    .string()
-    .uuid({ message: "有効なテストケースIDを指定してください" }),
+  caseRevisionId: uuidSchema,
 
   /**
-   * リビジョン番号
-   */
-  revisionNumber: z
-    .number()
-    .int()
-    .min(1, { message: "リビジョン番号は1以上である必要があります" }),
-
-  /**
-   * 実行順序
+   * 実行順序（1以上の正の整数）
    */
   order: z
     .number()
-    .int()
-    .min(1, { message: "実行順序は1以上である必要があります" }),
+    .int({ message: "実行順序は整数である必要があります" })
+    .positive({ message: "実行順序は1以上である必要があります" }),
+
+  /**
+   * 任意フラグ（必須/任意を示す）
+   */
+  optionalFlag: z.boolean(),
+
+  /**
+   * 備考（オプション、最大500文字）
+   */
+  note: z
+    .string()
+    .max(500, { message: "備考は500文字以内で入力してください" })
+    .optional(),
 });
 
 /**
- * テストシナリオ作成フォームスキーマ
+ * テストシナリオ作成スキーマ
+ *
+ * 新規テストシナリオ作成時のバリデーションに使用します。
+ * クライアント（React Hook Form）とサーバー（React Router action）の両方で使用可能です。
+ *
+ * @example
+ * ```tsx
+ * // Client-side validation
+ * const form = useForm({
+ *   resolver: zodResolver(createTestScenarioSchema),
+ * });
+ *
+ * // Server-side validation
+ * export async function action({ request }: ActionFunctionArgs) {
+ *   const formData = await request.formData();
+ *   const validation = createTestScenarioSchema.safeParse(JSON.parse(formData.get("data")));
+ *   if (!validation.success) {
+ *     return data({ errors: validation.error.flatten() }, { status: 400 });
+ *   }
+ * }
+ * ```
  */
 export const createTestScenarioSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z
-    .string()
-    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: uuidSchema,
 
   /**
-   * タイトル
+   * 作成者ユーザーID
+   */
+  createdBy: uuidSchema,
+
+  /**
+   * シナリオタイトル（1〜200文字）
    */
   title: z
     .string()
@@ -48,67 +92,119 @@ export const createTestScenarioSchema = z.object({
     .max(200, { message: "タイトルは200文字以内で入力してください" }),
 
   /**
-   * 説明（オプション）
+   * 説明（オプション、最大2000文字）
    */
   description: z
     .string()
-    .max(1000, { message: "説明は1000文字以内で入力してください" })
+    .max(2000, { message: "説明は2000文字以内で入力してください" })
     .optional(),
 
   /**
-   * テストケースのリスト
+   * テストケース項目リスト（最低1つ必須）
    */
-  testCases: z
-    .array(testScenarioCaseRefSchema)
+  items: z
+    .array(testScenarioItemSchema)
     .min(1, { message: "テストケースを1つ以上追加してください" }),
 
   /**
-   * 作成者ユーザーID
+   * 作成理由（オプション、1〜1000文字）
    */
-  createdBy: z.string().uuid({ message: "有効なユーザーIDを指定してください" }),
+  reason: z
+    .string()
+    .min(1, { message: "作成理由を入力してください" })
+    .max(1000, { message: "作成理由は1000文字以内で入力してください" })
+    .optional(),
 });
 
 /**
- * テストシナリオリスト項目参照スキーマ
+ * シナリオリスト項目インクルードルールスキーマ
+ *
+ * シナリオ実行時のフィルタリングルールを定義します。
  */
-export const testScenarioListItemRefSchema = z.object({
+export const includeRuleSchema = z.object({
   /**
-   * テストシナリオID
+   * インクルードタイプ
+   * - FULL: 全ケース実行
+   * - REQUIRED_ONLY: 必須ケースのみ実行
    */
-  scenarioId: z
-    .string()
-    .uuid({ message: "有効なテストシナリオIDを指定してください" }),
+  type: z.enum(["FULL", "REQUIRED_ONLY"], {
+    errorMap: () => ({
+      message: "有効なインクルードタイプを選択してください",
+    }),
+  }),
+});
+
+/**
+ * テストシナリオリスト項目スキーマ
+ *
+ * シナリオリスト内の個別シナリオリビジョン参照を検証します。
+ *
+ * @example
+ * ```tsx
+ * const form = useForm({
+ *   resolver: zodResolver(testScenarioListItemSchema),
+ *   defaultValues: {
+ *     scenarioRevisionId: "",
+ *     order: 1,
+ *     includeRule: { type: "FULL" },
+ *   },
+ * });
+ * ```
+ */
+export const testScenarioListItemSchema = z.object({
+  /**
+   * テストシナリオリビジョンID
+   */
+  scenarioRevisionId: uuidSchema,
 
   /**
-   * リビジョン番号
-   */
-  revisionNumber: z
-    .number()
-    .int()
-    .min(1, { message: "リビジョン番号は1以上である必要があります" }),
-
-  /**
-   * 順序
+   * 実行順序（1以上の正の整数）
    */
   order: z
     .number()
-    .int()
-    .min(1, { message: "順序は1以上である必要があります" }),
+    .int({ message: "実行順序は整数である必要があります" })
+    .positive({ message: "実行順序は1以上である必要があります" }),
+
+  /**
+   * インクルードルール（オプション）
+   */
+  includeRule: includeRuleSchema.optional(),
+
+  /**
+   * 備考（オプション、最大500文字）
+   */
+  note: z
+    .string()
+    .max(500, { message: "備考は500文字以内で入力してください" })
+    .optional(),
 });
 
 /**
- * テストシナリオリスト作成フォームスキーマ
+ * テストシナリオリスト作成スキーマ
+ *
+ * 新規シナリオリスト作成時のバリデーションに使用します。
+ * クライアント（React Hook Form）とサーバー（React Router action）の両方で使用可能です。
+ *
+ * @example
+ * ```tsx
+ * const form = useForm({
+ *   resolver: zodResolver(createTestScenarioListSchema),
+ * });
+ * ```
  */
 export const createTestScenarioListSchema = z.object({
   /**
    * プロジェクトID
    */
-  projectId: z
-    .string()
-    .uuid({ message: "有効なプロジェクトIDを指定してください" }),
+  projectId: uuidSchema,
 
   /**
-   * タイトル
+   * 作成者ユーザーID
+   */
+  createdBy: uuidSchema,
+
+  /**
+   * リストタイトル（1〜200文字）
    */
   title: z
     .string()
@@ -116,116 +212,37 @@ export const createTestScenarioListSchema = z.object({
     .max(200, { message: "タイトルは200文字以内で入力してください" }),
 
   /**
-   * 説明（オプション）
+   * 説明（オプション、最大2000文字）
    */
   description: z
     .string()
-    .max(1000, { message: "説明は1000文字以内で入力してください" })
+    .max(2000, { message: "説明は2000文字以内で入力してください" })
     .optional(),
 
   /**
-   * テストシナリオのリスト
+   * シナリオ項目リスト（最低1つ必須）
    */
-  testScenarios: z
-    .array(testScenarioListItemRefSchema)
+  items: z
+    .array(testScenarioListItemSchema)
     .min(1, { message: "テストシナリオを1つ以上追加してください" }),
 
   /**
-   * 作成者ユーザーID
+   * 作成理由（オプション、1〜1000文字）
    */
-  createdBy: z.string().uuid({ message: "有効なユーザーIDを指定してください" }),
-});
-
-/**
- * テストシナリオリビジョン作成スキーマ
- */
-export const createTestScenarioRevisionSchema = z.object({
-  /**
-   * テストシナリオID
-   */
-  scenarioId: z
+  reason: z
     .string()
-    .uuid({ message: "有効なテストシナリオIDを指定してください" }),
-
-  /**
-   * タイトル
-   */
-  title: z
-    .string()
-    .min(1, { message: "タイトルを入力してください" })
-    .max(200, { message: "タイトルは200文字以内で入力してください" }),
-
-  /**
-   * 説明（オプション）
-   */
-  description: z
-    .string()
-    .max(1000, { message: "説明は1000文字以内で入力してください" })
+    .min(1, { message: "作成理由を入力してください" })
+    .max(1000, { message: "作成理由は1000文字以内で入力してください" })
     .optional(),
-
-  /**
-   * テストケースのリスト
-   */
-  testCases: z
-    .array(testScenarioCaseRefSchema)
-    .min(1, { message: "テストケースを1つ以上追加してください" }),
-
-  /**
-   * 作成者ユーザーID
-   */
-  createdBy: z.string().uuid({ message: "有効なユーザーIDを指定してください" }),
-});
-
-/**
- * テストシナリオ更新スキーマ
- */
-export const updateTestScenarioRevisionSchema = z.object({
-  /**
-   * リビジョンID
-   */
-  revisionId: z
-    .string()
-    .uuid({ message: "有効なリビジョンIDを指定してください" }),
-
-  /**
-   * タイトル（オプション）
-   */
-  title: z
-    .string()
-    .min(1, { message: "タイトルを入力してください" })
-    .max(200, { message: "タイトルは200文字以内で入力してください" })
-    .optional(),
-
-  /**
-   * 説明（オプション）
-   */
-  description: z
-    .string()
-    .max(1000, { message: "説明は1000文字以内で入力してください" })
-    .optional(),
-
-  /**
-   * テストケースのリスト（オプション）
-   */
-  testCases: z.array(testScenarioCaseRefSchema).optional(),
 });
 
 /**
  * 型推論ヘルパー
  */
-export type TestScenarioCaseRefInput = z.infer<
-  typeof testScenarioCaseRefSchema
->;
+export type TestScenarioItem = z.infer<typeof testScenarioItemSchema>;
 export type CreateTestScenarioInput = z.infer<typeof createTestScenarioSchema>;
-export type TestScenarioListItemRefInput = z.infer<
-  typeof testScenarioListItemRefSchema
->;
+export type IncludeRule = z.infer<typeof includeRuleSchema>;
+export type TestScenarioListItem = z.infer<typeof testScenarioListItemSchema>;
 export type CreateTestScenarioListInput = z.infer<
   typeof createTestScenarioListSchema
->;
-export type CreateTestScenarioRevisionInput = z.infer<
-  typeof createTestScenarioRevisionSchema
->;
-export type UpdateTestScenarioRevisionInput = z.infer<
-  typeof updateTestScenarioRevisionSchema
 >;

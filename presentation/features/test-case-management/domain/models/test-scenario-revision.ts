@@ -1,44 +1,84 @@
 import { Data } from "effect";
 import type { RevisionStatus } from "./revision-status";
+import { isEditable } from "./revision-status";
+import type { Json } from "./test-case-revision";
 
 /**
- * テストシナリオに含まれるテストケースの参照
+ * TestScenarioItem - シナリオに含まれるテストケース項目
+ *
+ * シナリオ内でのテストケースの位置と設定を管理します。
  */
-export class TestScenarioCaseRef extends Data.Class<{
+export class TestScenarioItem extends Data.Class<{
   /**
-   * テストケースID
+   * テストケースリビジョンID
+   *
+   * このシナリオで使用するテストケースの特定リビジョンを指定
    */
-  readonly caseId: string;
+  readonly caseRevisionId: string;
 
   /**
-   * 使用するリビジョン番号
-   */
-  readonly revisionNumber: number;
-
-  /**
-   * シナリオ内での実行順序
+   * シナリオ内での実行順序（1から始まる連番）
    */
   readonly order: number;
-}> {}
+
+  /**
+   * オプションフラグ
+   *
+   * trueの場合、このテストケースはオプション（実行必須ではない）
+   */
+  readonly optionalFlag: boolean;
+
+  /**
+   * 備考（オプション）
+   *
+   * このテストケースをシナリオに含める理由や注意点など
+   */
+  readonly note?: string;
+}> {
+  /**
+   * 必須テストケースかチェック
+   *
+   * @returns 必須の場合はtrue
+   */
+  isRequired(): boolean {
+    return !this.optionalFlag;
+  }
+
+  /**
+   * オプションテストケースかチェック
+   *
+   * @returns オプションの場合はtrue
+   */
+  isOptional(): boolean {
+    return this.optionalFlag;
+  }
+}
 
 /**
- * TestScenarioRevision ドメインモデル
+ * TestScenarioRevision - テストシナリオのリビジョン
  *
- * テストシナリオのリビジョン（バージョン）を表現するドメインモデル
+ * テストシナリオの特定バージョンの内容を保持します。
+ * 複数のテストケースを順序付けて管理し、一連のテストフローを定義します。
  */
 export class TestScenarioRevision extends Data.Class<{
   /**
    * リビジョンID（UUID）
+   *
+   * このリビジョンを一意に識別するID
    */
   readonly id: string;
 
   /**
-   * 所属テストシナリオID
+   * 所属テストシナリオID（stable ID）
+   *
+   * このリビジョンが属するテストシナリオのstable ID
    */
-  readonly testScenarioId: string;
+  readonly scenarioStableId: string;
 
   /**
    * リビジョン番号（1から始まる連番）
+   *
+   * テストシナリオごとに独立して採番されます
    */
   readonly rev: number;
 
@@ -53,14 +93,29 @@ export class TestScenarioRevision extends Data.Class<{
   readonly title: string;
 
   /**
-   * シナリオの説明
+   * シナリオの説明（オプション）
    */
   readonly description?: string;
 
   /**
    * 含まれるテストケースのリスト（順序付き）
    */
-  readonly testCases: readonly TestScenarioCaseRef[];
+  readonly items: readonly TestScenarioItem[];
+
+  /**
+   * 前リビジョンとの差分（JSONB、オプション）
+   *
+   * 前のリビジョンから変更された内容を記録します。
+   * rev=1の場合はundefinedです。
+   */
+  readonly diff?: Json;
+
+  /**
+   * リビジョン作成理由（オプション）
+   *
+   * 例: "テストケースの追加", "実行順序の変更"
+   */
+  readonly reason?: string;
 
   /**
    * 作成者ユーザーID
@@ -71,14 +126,49 @@ export class TestScenarioRevision extends Data.Class<{
    * 作成日時
    */
   readonly createdAt: Date;
+}> {
+  /**
+   * このリビジョンが編集可能かチェック
+   *
+   * @returns 編集可能な場合はtrue
+   */
+  isEditable(): boolean {
+    return isEditable(this.status);
+  }
 
   /**
-   * 承認者ユーザーID（承認済みの場合）
+   * 総テストケース数を取得
+   *
+   * @returns 含まれるテストケースの総数
    */
-  readonly approvedBy?: string;
+  getTotalCases(): number {
+    return this.items.length;
+  }
 
   /**
-   * 承認日時（承認済みの場合）
+   * 必須テストケース数を取得
+   *
+   * @returns 必須テストケースの数
    */
-  readonly approvedAt?: Date;
-}> {}
+  getRequiredCases(): number {
+    return this.items.filter((item) => item.isRequired()).length;
+  }
+
+  /**
+   * オプションテストケース数を取得
+   *
+   * @returns オプションテストケースの数
+   */
+  getOptionalCases(): number {
+    return this.items.filter((item) => item.isOptional()).length;
+  }
+
+  /**
+   * 表示用タイトルを取得
+   *
+   * @returns "タイトル (rev.番号)" の形式
+   */
+  getDisplayTitle(): string {
+    return `${this.title} (rev.${this.rev})`;
+  }
+}
